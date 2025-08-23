@@ -1,0 +1,130 @@
+\documentclass{article}
+
+\usepackage[a4paper]{geometry}
+\usepackage[spanish]{babel}
+
+\usepackage{mathbbol}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{hyperref}
+
+
+\begin{document}
+
+\section{Opcional}
+
+\newcommand{\ones}[1]{\mathbb{1}_{#1}}
+\newcommand{\lap}{\mathbf{L}}
+\newcommand{\diag}{\mathbf{D}}
+\newcommand{\adj}{\mathbf{A}}
+\newcommand{\bm}{\tilde{\mathbf{B}}}
+\newcommand{\x}{\mathbf{x}}
+
+Sea $G(V,E)$ un grafo simple (no dirigido, sin pesos y sin auto-aristas), con cantidad de vértices $N_v = |V|$ y cantidad de aristas $N_e = |E|$, y matriz de adyacencia $\mathbf{A}$. Sea $\mathbf{D} = \text{diag}(d_{1},\dots, d_{N_v})$ la matriz de grados y $\mathbf{L}=\mathbf{D}- \mathbf{A}$ la matriz laplaciana de $G$.
+ 
+\subsection{Vector propio $\ones{N_v}$}
+\label{subsec:vector_propio_1}
+
+Verificaremos que $\ones{N_v}$ es vector propio de $\lap$ con valor 0. Desarrollemos la multiplicación:
+
+\begin{equation}
+    \lap \cdot \ones{N_v} = (\diag - \adj) \cdot \ones{N_v}  = \diag \cdot \ones{N_v} - \adj \cdot \ones{N_v} \stackrel{(a)}{=} 0
+    \label{eq:1_vecpropio_L}
+\end{equation}
+
+Donde en (a) se usa que $\adj \cdot \ones{N_v} = [d_1, \dots, d_{N_v}]$, resultado que
+se obtiene trivialmente a partir de la definición de matriz de adyacencia. 
+Por lo tanto, \eqref{eq:1_vecpropio_L} prueba que $\ones{N_v}$ es vector propio de $\lap$ con valor 0.
+
+\subsection{Relación del laplaciano y la matriz de incidencia}
+
+Aunque $G$ es un grafo no dirigido, podemos asignarle a cada arista en $E$ una orientación "virtual" arbitraria: para cada arista elegimos arbitrariamente uno de sus vértices como nodo inicial y el otro como nodo final. Dada esa asignación, definimos la \textbf{matriz de incidencia signada} $\bm \in \{-1,0,1\}^{N_v\times N_e}$ con entrada $i,e$ dada por:
+\begin{equation}
+    \bm_{ie} = \left\lbrace
+    \begin{array}{r l}
+    1,& \text{si el vértice } i \text{ es el nodo inicial de la arista } e\\
+    -1,& \text{si el vértice } i \text{ es el nodo final de la arista } e\\
+    0,& \text{en otro caso}
+    \end{array}
+    \right. .
+    \label{eq:matrix_incidencia}
+\end{equation}
+
+Demostraremos que la matriz laplaciana puede descomponerse como $\mathbf{L}=\tilde{\mathbf{B}}\tilde{\mathbf{B}}^\top$. Comencemos analizando el producto de $\bm\cdot\bm^\top$.
+
+Para la diagonal:
+\begin{equation}
+    \label{eq:BB_ii}
+    \bm\bm^\top_{ii} = \bm_i \cdot \bm_i^\top = \sum_{e\in E} \bm_{ie}^2 = d_i
+\end{equation}
+
+Para los valores fuera de la diagonal:
+\begin{equation}
+    \label{eq:BB_ij}
+    \bm\bm^\top_{ij} = \bm_i\cdot\bm_j^\top = \sum_{e\in E} \bm_{ie} * \bm_{je} = \left\lbrace
+    \begin{array}{r l}
+       -1, & \text{si $\exists e\in E$ entre i y j} \\
+       0, & \text{si $!\exists e \in E$ que conecte i y j}
+    \end{array}
+    \right.
+\end{equation}
+donde la última igualdad sucede porque solo hay una arista en $e \in E$ donde 
+$\bm_{ie}$ y $\bm_{je}$ son ambos no nulos, y para esa arista se cumple que uno es 
+$1$ y el otro $-1$. Uniendo los resultados de \eqref{eq:BB_ii} y \eqref{eq:BB_ij} obtenemos:
+
+\begin{equation}
+    \label{eq:L_igual_BB}
+   \bm\bm^\top_{ij} = \left\lbrace
+   \begin{array}{r l}
+        d_i, & \text{si $i=j$} \\
+        -1, & \text{si $i\neq j$ y existe una arista entre i y j} \\
+        0, & \text{si $i\neq j$ y no existe una arista entre i y j}
+   \end{array}
+   \right. = \lap
+\end{equation}
+que coincide con la definición del laplaciano.
+
+\subsection{$\lap$ simétrica y semidefinida positiva}
+
+La demostración de $\lap$ simétrica surge fácilmente aplicando propiedades de la traspuesta. Partiendo del resultado \eqref{eq:L_igual_BB}:
+\begin{equation}
+    \lap^\top = (\bm\bm^\top)^\top = (\bm^\top)^\top \bm^\top = \bm\bm^\top = \lap
+\end{equation}
+
+Para demostrar que es semidefinida positiva, tomemos un vector $\x = [x_1, x_2, \dots, x_{N_v}]^\top \in \mathbb{R}^{N_v}$
+cualquiera y calculemos $\x^\top\lap\x$.
+\begin{equation*}
+    \x^\top\lap\x = \x^\top \bm\bm^T\x = (\x^\top\bm)(\x^\top\bm)^\top
+\end{equation*}
+De la definición \eqref{eq:matrix_incidencia} de la matriz de incidencia, es trivial que $\x^\top \bm$ es un vector de dimensión $N_e$, donde el k-esimo valor es $x_i-x_j$ con $(i,j) = e_k \in E$.  Por lo tanto:
+\begin{equation}
+    \x^\top\lap\x = (\x^\top\bm)(\x^\top\bm)^\top = \sum_{(i,j)\in E} (x_i-x_j)^2 \geq 0
+\end{equation}
+quedando demostrado que $\lap$ es semidefinida positiva.
+
+\subsection{Grafo G no conexo}
+
+Si el grafo G es no conexo, podemos pensarlo como $N_c$ subgrafos conexos. De esa forma
+obtenemos $N_c$ conjuntos de nodos $V_i$, aristas $E_i$, matrices de adyacencia $\adj_i$ y matrices de grado $\diag_i$. Con este modelado, es trivial ver que las matrices de adyacencia y de grados quedan:
+\begin{equation*}
+    \begin{array}{l c r}
+        \adj = \left(\begin{matrix}
+            \adj_1 & 0 & \dots & 0 \\
+            0 & \adj_2 & \dots & 0 \\
+            \vdots & \vdots & \ddots & \vdots \\
+            0 & 0 & \dots & \adj_{N_c}
+        \end{matrix}\right) 
+        & &
+        \diag =\left(\begin{matrix}
+             \diag_1 & 0 & \dots & 0 \\
+            0 & \diag_2 & \dots & 0 \\
+            \vdots & \vdots & \ddots & \vdots \\
+            0 & 0 & \dots & \diag_{N_c}
+        \end{matrix}\right)
+    \end{array}
+\end{equation*}
+Como el laplaciano cumple que $\lap = \diag - \adj$, y ambas matrices son diagonale por bloques, el laplaciano es diagonal por bloques. 
+
+Partiendo del resultado obtenido en la sección~\ref{subsec:vector_propio_1}, concluimos que tenemos $N_c$ vectores propios con valor 0. Cada bloque del laplaciano tiene vector propio con valor 0 al vector con unos en la entradas asociadas al bloque y 0 en el resto de entradas, lo que resulta en $N_c$ vectores ortogonales tal que $\lap \mathbf{v} = 0$.
+
+\end{document}
