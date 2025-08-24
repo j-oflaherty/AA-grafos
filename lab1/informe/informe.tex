@@ -11,7 +11,40 @@
 
 \begin{document}
 
-\section{Opcional}
+\begin{center}
+{\LARGE Aprendizaje Automático para Datos en Grafos:} \\
+{\LARGE Laboratorio 1} \\
+\vspace{1em}
+\begin{minipage}{0.45\textwidth}
+\centering
+Graciana Castro \\
+4.808.848-2 \\
+gcastro@fing.edu.uy
+\end{minipage}
+\hfill
+\begin{minipage}{0.45\textwidth}
+\centering
+Julian O'Flaherty \\
+6.285.986-9 \\
+julian.o.flaherty@fing.edu.uy
+\end{minipage}
+\end{center}
+
+
+\section{Introducción y Objetivos}
+Se presenta a continuación el informe del Laboratorio 1 para la materia Aprendizaje Automático para Datos en Grafos. Tiene como objetivo principal afianzar los conocimientos dados en el teórico sobre descriptores del grafo (por ejemplo: cantidad de nodos, cantidad de aristas, cantidad de aristas dirigidas) y distintas medidas de centralidad para identificar nodos y relaciones importantes entre ellos. Además, se busca familiarizarnos con las bibliotecas \textit{NetworkX} y \textit{Pytorch Geometric}, dos bibliotecas de Python utilizadas para trabajar con datos en grafos. 
+
+El laboratorio se separa en dos ejercicios. En el primero se trabaja con la base de datos \textit{Enron Scandal} mientras que para el segundo se utiliza la base \textit{Zachary's Karate Club}. El informe se divide en la sección \ref{sec: ej1} donde se presenta el Ejercicio 1 y la sección \ref{sec: ej2} para el Ejercicio 2. En cada una se describe la base de datos utilizada, procedimiento y resultados obtenidos y conclusiones.  
+
+\section{Ejercicio 1} \label{sec: ej1}
+
+
+\subsection{Datos} 
+
+\subsection{Resultados}
+
+\section{Ejercicio 2} \label{sec: ej2}
+\subsection{Opcional}
 
 \newcommand{\ones}[1]{\mathbb{1}_{#1}}
 \newcommand{\lap}{\mathbf{L}}
@@ -22,13 +55,13 @@
 
 Sea $G(V,E)$ un grafo simple (no dirigido, sin pesos y sin auto-aristas), con cantidad de vértices $N_v = |V|$ y cantidad de aristas $N_e = |E|$, y matriz de adyacencia $\mathbf{A}$. Sea $\mathbf{D} = \text{diag}(d_{1},\dots, d_{N_v})$ la matriz de grados y $\mathbf{L}=\mathbf{D}- \mathbf{A}$ la matriz laplaciana de $G$.
  
-\subsection{Vector propio $\ones{N_v}$}
+\subsubsection{Vector propio $\ones{N_v}$}
 \label{subsec:vector_propio_1}
 
 Verificaremos que $\ones{N_v}$ es vector propio de $\lap$ con valor 0. Desarrollemos la multiplicación:
 
 \begin{equation}
-    \lap \cdot \ones{N_v} = (\diag - \adj) \cdot \ones{N_v}  = \diag \cdot \ones{N_v} - \adj \cdot \ones{N_v} \stackrel{(a)}{=} 0
+    \lap \cdot \ones{N_v} = (\diag - \adj) \cdot \ones{N_v}  = \diag \cdot \ones{N_v} - \adj \cdot \ones{N_v} \stackrel{(a)}{=} \vec{0}
     \label{eq:1_vecpropio_L}
 \end{equation}
 
@@ -36,9 +69,9 @@ Donde en (a) se usa que $\adj \cdot \ones{N_v} = [d_1, \dots, d_{N_v}]$, resulta
 se obtiene trivialmente a partir de la definición de matriz de adyacencia. 
 Por lo tanto, \eqref{eq:1_vecpropio_L} prueba que $\ones{N_v}$ es vector propio de $\lap$ con valor 0.
 
-\subsection{Relación del laplaciano y la matriz de incidencia}
+\subsubsection{Relación del laplaciano y la matriz de incidencia}
 
-Aunque $G$ es un grafo no dirigido, podemos asignarle a cada arista en $E$ una orientación "virtual" arbitraria: para cada arista elegimos arbitrariamente uno de sus vértices como nodo inicial y el otro como nodo final. Dada esa asignación, definimos la \textbf{matriz de incidencia signada} $\bm \in \{-1,0,1\}^{N_v\times N_e}$ con entrada $i,e$ dada por:
+Aunque $G$ es un grafo no dirigido, podemos asignarle a cada arista en $E$ una orientación ``virtual'' arbitraria: para cada arista elegimos arbitrariamente uno de sus vértices como nodo inicial y el otro como nodo final. Dada esa asignación, definimos la \textbf{matriz de incidencia signada} $\bm \in \{-1,0,1\}^{N_v\times N_e}$ con entrada $i,e$ dada por:
 \begin{equation}
     \bm_{ie} = \left\lbrace
     \begin{array}{r l}
@@ -84,7 +117,7 @@ $1$ y el otro $-1$. Uniendo los resultados de \eqref{eq:BB_ii} y \eqref{eq:BB_ij
 \end{equation}
 que coincide con la definición del laplaciano.
 
-\subsection{$\lap$ simétrica y semidefinida positiva}
+\subsubsection{$\lap$ simétrica y semidefinida positiva}
 
 La demostración de $\lap$ simétrica surge fácilmente aplicando propiedades de la traspuesta. Partiendo del resultado \eqref{eq:L_igual_BB}:
 \begin{equation}
@@ -102,7 +135,7 @@ De la definición \eqref{eq:matrix_incidencia} de la matriz de incidencia, es tr
 \end{equation}
 quedando demostrado que $\lap$ es semidefinida positiva.
 
-\subsection{Grafo G no conexo}
+\subsubsection{Grafo G no conexo}
 
 Si el grafo G es no conexo, podemos pensarlo como $N_c$ subgrafos conexos. De esa forma
 obtenemos $N_c$ conjuntos de nodos $V_i$, aristas $E_i$, matrices de adyacencia $\adj_i$ y matrices de grado $\diag_i$. Con este modelado, es trivial ver que las matrices de adyacencia y de grados quedan:
