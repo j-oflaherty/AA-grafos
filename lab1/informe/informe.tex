@@ -141,6 +141,82 @@ Por otro lado, la distribución del grado de salida presenta una cola más larga
 
 \subsection{Análisis temporal del grafo}
 % completar
+Los datos cuentan con etiquetas temporales, por lo que podemos analizar la evolución del grafo y su estructura a lo largo del tiempo. El primer paso consiste en 
+agrupar los datos semanalmente y generar el grafo de interacciones asociado a esa semana.  El modelado temporal nos permite hacer un análisis de comportamientos
+anómalos en el funcionamiento de la empresa, lo que puede indicar eventos del escándalo.
+
+\subsubsection{Indicadores de nodos}
+
+Los indicadores de nodo son métricas que evalúan alguna característica del nodo respecto al grafo. En nuestro caso, vamos a tomar la \emph{Betweeness Centrality} y el \emph{PageRank} como indicadores. \emph{Betweeness Centrality}, mide la importancia de un nodo al pasaje de la información, y se define como:
+\begin{equation}
+    c(v) = \sum_{s \neq v \neq t} \frac{\sigma_{st}(v)}{\sigma_{st}}
+    \label{eq:betweeness_centrality}
+\end{equation}
+Donde:
+\begin{itemize}
+    \item $\sigma_{st}(v)$: número de caminos más cortos que pasan por $v$ entre $s$ y $t$
+    \item $\sigma_{st}$: número total de caminos más cortos entre $s$ y $t$
+\end{itemize}
+\emph{PageRank}, por su parte, es una métrica que evalúa la importancia de un nodo en el grafo en base a su relación con nodos importantes. Esta se define como:
+\begin{equation}
+    PR(v) = (I - \alpha A^\top D^{-1})^{-1} \mathbf{1}
+    \label{eq:page_rank}
+\end{equation}
+Donde:
+\begin{itemize}
+    \item $A$: matriz de adyacencia del grafo
+    \item $D$: matriz de grados del grafo
+    \item $\alpha$: factor de amortiguación, tipicamente $0.85$ (valor default de \textit{NetworkX})
+\end{itemize}
+
+Para medir la evolución temporal de los indicadores, se calculan los indicadores para cada subgrafo semanal y se toma el máximo valor y el nodo al que corresponde.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{imagenes/ej1/betweeness.png}
+    \caption{Evolución de la Betweeness Centrality. La linea roja punteada es el valor máximo del grafo completo.}
+    \label{fig:betweeness_centrality}
+\end{figure}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{imagenes/ej1/pagerank.png}
+    \caption{Evolución de la PageRank. La linea roja punteada es el valor máximo del grafo completo.}
+    \label{fig:page_rank}
+\end{figure}
+
+En la figura \ref{fig:betweeness_centrality} se observa la evolución temporal de la Betweeness Centrality. Una primera observación es que al principio y al final del periodo, se obtienen valores muy bajos porque los grafos tienen pocos nodos, dado que son semanas de poca actividad.
+Debido a la variedad de nodos que toman el valor máximo semana a semana, la representación visual se torna dificil, pero aún así se puede notar como nodos que incialmente no eran relevantes toman relevancia a medida que pasa el tiempo. Estas mismas observaciones aplican a la figura \ref{fig:page_rank}\footnote{Los colores son independientes entre las dos figuras.}, solo que al principio y al final del periodo se obtienen valores más altos por la naturaleza de la métrica.
+
+En la figura~\ref{fig:betweeness_centrality}, el pico más alto coincide con un evento de la controversia, el lanzamiento de \emph{Enron Online}. Hay un segundo pico cerca alrededor de Julio del 2000 que coincide con la \emph{EBS Blockbuster Parnership}. Cerca de Enero 2002 observamos nuevos picos, que coincide con las fechas donde \emph{Enron} se declara en bancarrota.
+
+Del análisis de la figura~\ref{fig:page_rank} es más dificil detectar eventos puntuales, pero se nota como el comportamiento durante la controversia pareciera ser anómalo respecto a las semanas previas y posteriores, donde hubo mucho más movimiento en la red que lo normal.
+
+\subsubsection{Indicadores de grafo}
+
+Se puede realizar también un análisis de métricas a nivel del grafo entero. Estas métricas evalúan el comportamiento de la red en su totalidad en vez del comportamiento individual de los nodos.
+
+Para este análisis, se eligieron 5 métricas:
+\begin{itemize}
+    \item \emph{Número de nodos}: Número de nodos del grafo. Indica la cantidad de personas involucradas en la red cada semana.
+    \item \emph{Número de aristas}: Número de aristas del grafo. Indica el nivel de interacción entre las personas en la red cada semana.
+    \item \emph{Grado máximo}: Grado máximo de los nodos del grafo. Indica si las interacciones se dan entre muchas personas, o si fueron entre grupos más chicos de personas.
+    \item \emph{Grado promedio}: Promedio de los grados de los nodos del grafo. Indica el nivel de interacción promedio entre las personas en la red cada semana.
+    \item \emph{Coeficiente de agrupamiento promedio}: Promedio de los coeficientes de agrupamiento de los nodos del grafo. Indica si las interacciones se dieron entre grupos de personas, o si fueron entre personas individuales.
+\end{itemize}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{imagenes/ej1/metricas_grafo.png}
+    \caption{Evolución de las métricas del grafo.}
+    \label{fig:metricas_grafo}
+\end{figure}
+
+En la figura~\ref{fig:metricas_grafo} se observa la evolución temporal de las métricas del grafo. Se puede observar que el número de nodos y el número de aristas aumentan a lo largo del tiempo, lo que indica que la cantidad de involucrados y la cantidad de interacciones va creciendo a lo largo que se desarrolla la controversia.
+
+El grado promedio sigue la misma tendencia, mientras que el grado máximo tiene picos marcados sobre el final del periodo. El coeficiente de agrupamiento promedio es el más erratico, con muchos picos al principio y sobre el final del periodo.
+
+Al igual que con los indicadores de nodos, podemos ver picos en el coeficiente de agrupamiento promedio cerca de diciembre del 1999, que coincide con el lanzamiento de \emph{Enron Online}. Otra fecha notable, donde todas las gráficas presentan un pico, es a inicios del 2001, cuando Stephen Cooper como \emph{CEO}. Otro evento detectable es el pico que se da en el grado máximo un poco antes de Julio 2001, que coincide con una reunión de Cuatrimestre.
 
 \section{Ejercicio 2} \label{sec: ej2}
 En este ejercicio se trabaja con la base de datos \textit{Zachary's Karate Club}, que contiene las interacciones entre los miembros de un club de karate.Representa las relaciones de amistad entre los miembros de un club de karate universitario, estudiadas por Wayne Zachary en la década de 1970. El grafo contiene 34 nodos (miembros) que representan a los miembros del club y las aristas son no dirigidas y sin pesos e indican la existencia de una relación social fuera del club.
