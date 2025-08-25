@@ -2,6 +2,7 @@
 
 \usepackage[a4paper]{geometry}
 \usepackage[spanish]{babel}
+\usepackage{xcolor}
 
 \usepackage{mathbbol}
 \usepackage{amsmath}
@@ -9,14 +10,17 @@
 \usepackage{hyperref}
 \usepackage{graphicx}
 
+% Cambiar 'Cuadro' -> 'Tabla'
+\addto\captionsspanish{
+    \renewcommand{\tablename}{Tabla}
+}
+
 \begin{document}
 
-
-
 \begin{center}
-    {\LARGE Aprendizaje Automático para Datos en Grafos:} \\
-    {\LARGE Laboratorio 1} \\
-    \vspace{1em}
+    {\Large Aprendizaje Automático para Datos en Grafos} \\
+    {\LARGE \textbf{Laboratorio 1}} \\
+    \vspace{2em}
     \begin{minipage}{0.45\textwidth}
         \centering
         Graciana Castro \\
@@ -42,9 +46,10 @@ El laboratorio se separa en dos ejercicios. En el primero se trabaja con la base
 En este ejercicio se trabaja con la base de datos \textit{Enron Scandal}, que contiene correos electrónicos de empleados de la empresa Enron. Se hizo pública después del escándalo financiero de la empresa a principios de los 2000s. Se encuentra estructurada como un grafo dirigido, donde los nodos del grafo representan a los empleados y las aristas dirigidas representan los correos electrónicos enviados entre ellos.
 
 Se realizaron algunas tareas previas de limpieza, como por ejemplo la eliminación de \textit{self-loops} (aristas que tienen igual nodo de entrada y de salida) y la eliminación del texto de los correos electrónicos.
+\textcolor{red}{Julian: Eliminiación de texto en los correos electrónicos?}
 
 \subsection{Análisis del grafo completo}
-En primera instancia se trabaja con el grafo que considera todos los correos electrónicos intercambiados entre los empleados. El grafo resultante se muestra en la figura \ref{fig:grafo}, donde como dice el título, el grosor de la arista está determinado por la cantidad de correos intercambiados entre los dos nodos y el color del nodo está determinado por su \textit{betweeness centrality}. Se pueden observar nodos que no tienen ninguna arista entrante ni saliente, como ser el 117, que son empleados que se encontraban en la base de datos debido a que se autoenviaron correos pero no recibieron ni enviaron otros.
+En primera instancia se trabaja con el grafo que considera todos los correos electrónicos intercambiados entre los empleados. El grafo resultante se muestra en la figura \ref{fig:grafo}, donde como dice el título, el grosor de la arista está determinado por la cantidad de correos intercambiados entre los dos nodos y el color del nodo está determinado por su \textit{betweeness centrality}, que mide la importancia de un nodo al pasaje de información. Se pueden observar nodos que no tienen ninguna arista entrante ni saliente, como ser el 117, que son empleados que se encontraban en la base de datos debido a que se autoenviaron correos pero no recibieron ni enviaron otros.
 
 \begin{figure}[htb]
     \centering
@@ -53,25 +58,61 @@ En primera instancia se trabaja con el grafo que considera todos los correos ele
     \label{fig:grafo}
 \end{figure}
 
-Este grafo tiene en total 184 nodos conectados por 3007 aristas dirigidas (valores obtenidos a partir de las funciones \verb|number_of_nodes| y \verb|number_of_edges| de \textit{NetworkX}). Para calcular la cantidad de aristas no dirigidas, primero convertimos el grafo en uno no dirigido (con la función \verb|to_undirected|) y luego volvimos a utilizar la función \verb|number_of_edges|. De esta forma, se obtuvo que el grafo tiene 2097 aristas no dirigidas, indicando que no todos los empleados intercambiaron correos con todos. Se tienen en total 910 arcos mutuos, indicando que son 910 los pares de nodos que intercambiaron mails de ida y vuelta. Para calcular esto, se pasa el grafo a un grafo dirigido en el que se consideran solo los arcos mutuos (utilizando el parámetro \verb|reciprocal=True| de la función \verb|to_directed|). Otra forma de calcularlo es haciendo la resta entre el total de aristas dirigidas y el total de aristas no dirigidas, ya que esta diferencia indica la cantidad de aristas que no se cuentan porque ya fue contada la arista en sentido contrario.
+Este grafo tiene en total 184 nodos conectados por 3007 aristas dirigidas (valores obtenidos a partir de las funciones \verb|number_of_nodes| y \verb|number_of_edges| de \textit{NetworkX}). Para calcular la cantidad de aristas no dirigidas, primero convertimos el grafo en uno no dirigido (con la función \verb|to_undirected|) y luego volvimos a utilizar la función \verb|number_of_edges|. De esta forma, se obtuvo que el grafo tiene 2097 aristas no dirigidas, lo que indica que gran parte de los intercambios de mails son unilaterales. Se valida esto al calcular los arcos mutuos, donde obtenemos que 910 los pares de nodos intercambiaron mails de ida y vuelta. Para calcular esto, se pasa el grafo a un grafo dirigido en el que se consideran solo los arcos mutuos (utilizando el parámetro \verb|reciprocal=True| de la misma función \verb|to_undirected|). Otra forma de calcularlo es haciendo la resta entre el total de aristas dirigidas y el total de aristas no dirigidas, ya que esta diferencia indica la cantidad de aristas que no se cuentan porque ya fue contada la arista en sentido contrario.
 
-Para el cálculo del grado de entrada y de salida se puede utilizar las funciones \verb|in_degree| y \verb|out_degree| de \textit{NetworkX} o realizar el cálculo de aristas de entrada y salida a partir de la matriz de adyacencia. Se tienen tres nodos con grado de entrada cero, dos de los cuales además tienen grado de salida igual a cero. Son nodos aislados de la red, que representan empleados que se auto enviaron correos (como fue mencionado antes).
+Para el cálculo del grado de entrada y de salida se puede utilizar las funciones \verb|in_degree| y \verb|out_degree| de \textit{NetworkX} o realizar el cálculo de aristas de entrada y salida a partir de la matriz de adyacencia. Se tienen tres nodos con grado de entrada cero, dos de los cuales además tienen grado de salida igual a cero. Son nodos aislados de la red, que representan empleados que se auto enviaron correos (como fue mencionado antes, las aristas asociadas fueron descartadas en el preprocesado).
 
-Se muestran a continuación las tablas obtenidas al observar los nodos con grado de entrada y salida cero (figura \ref{fig:in_zero} y \ref{fig:out_zero} respectivamente).
+Se muestran a continuación las tablas obtenidas al observar los nodos con grado de entrada y salida cero (tablas \ref{tab:in_zero} y \ref{tab:out_zero} respectivamente).
 
-\begin{figure}[htb]
+\begin{table}[htb]
     \centering
-    \includegraphics[width=0.6\linewidth]{imagenes/ej1/in_degree_zero.png}
+    \begin{tabular}{|c|c|r|}
+        \hline
+        \textbf{Nodo} & \textbf{mail} & \textbf{name and more} \\
+        \hline
+        71 & j..kaminski & Vince Kaminski Manager Risk Ma... \\
+        117 & mary.fischer & Mary Fischer Employee \\
+        135 & m..smith & xxx \\
+        \hline
+    \end{tabular}
     \caption{Tabla de nodos con grado de entrada cero.}
-    \label{fig:in_zero}
-\end{figure}
+    \label{tab:in_zero}
+\end{table}
 
-\begin{figure}[htb]
+% \begin{figure}[htb]
+%     \centering
+%     \includegraphics[width=0.6\linewidth]{imagenes/ej1/in_degree_zero.png}
+%     \caption{Tabla de nodos con grado de entrada cero.}
+%     \label{fig:in_zero}
+% \end{figure}
+
+\begin{table}[htb]
     \centering
-    \includegraphics[width=0.6\linewidth]{imagenes/ej1/out_degree_zero.png}
+    \begin{tabular}{|c|c|r|}
+        \hline
+        \textbf{Nodo} & \textbf{mail} & \textbf{name and more} \\
+        \hline
+        164 & steven.south & xxx \\
+        122 & michele.lokay & Michelle Lokay Employee Admi... \\
+        111 & mark.e.haedicke & Mark Haedicke Managing Director Lega... \\
+        42 & e.taylor & Mark Taylor Employee \\
+        71 & j..kaminski & Vince Kaminski Manager Risk Ma... \\
+        87 & judy.hernandez & xxx \\
+        117 & mary.fischer & Mary Fischer Employee \\
+        150 & rob.gay & xxx \\
+        52 & gretel.smith & xxx \\
+        \hline
+    \end{tabular}
     \caption{Tabla de nodos con grado de salida cero.}
-    \label{fig:out_zero}
-\end{figure}
+    \label{tab:out_zero}
+\end{table}
+
+% \begin{figure}[htb]
+%     \centering
+%     \includegraphics[width=0.6\linewidth]{imagenes/ej1/out_degree_zero.png}
+%     \caption{Tabla de nodos con grado de salida cero.}
+%     \label{fig:out_zero}
+% \end{figure}
 
 \subsection{Análisis de empleados populares}
 Se consideran empleados populares aquellos que recibieron correos de más de 30 personas distintas o enviaron correos a más de 30 personas distintas. Se muestra en la figura \ref{fig:grafos_populares} los grafos completos con los empleados populares marcados en rojo.
@@ -87,7 +128,7 @@ Se puede observar que los empleados populares tienden a estar más conectados de
 
 \subsection{Histograma de grados de los nodos}
 
-La figura \ref{fig:histogramas_grados} muestra la distribución de los grados de entrada y salida. Se observa que la mayoría de los nodos tienen grados de entrada y salida bajos, lo que indica que la mayoría de los empleados envían y reciben correos con pocos otros empleados. El grado de entrada está más concentrado entre 5 y 25, con pocos nodos que reciben muchos correos.
+La figura \ref{fig:histogramas_grados} muestra la distribución de los grados de entrada y salida. Se observa que la mayoría de los nodos tienen grados de entrada y salida bajos, lo que indica que la mayoría de los empleados envían y reciben correos con pocos otros empleados. El grado de entrada está más concentrado entre 5 y 25, con pocos nodos que reciben correos de muchas personas.
 
 Por otro lado, la distribución del grado de salida presenta una cola más larga: existen algunos nodos que envían correos a muchos destinatarios (hasta cerca de 100), lo que podría indicar roles administrativos o de coordinación. En general, la distribución es asimétrica, especialmente en el grado de salida, lo que sugiere que hay nodos con comportamiento muy diferente al promedio. Esto indica que el grafo tiene una estructura donde la mayoría de los nodos interactúan con pocos otros, pero existen algunos nodos con alta actividad de envío, posiblemente personas con roles clave en la comunicación interna.
 
