@@ -219,9 +219,9 @@ El grado promedio sigue la misma tendencia, mientras que el grado máximo tiene 
 Al igual que con los indicadores de nodos, podemos ver picos en el coeficiente de agrupamiento promedio cerca de diciembre del 1999, que coincide con el lanzamiento de \emph{Enron Online}. Otra fecha notable, donde todas las gráficas presentan un pico, es a inicios del 2001, cuando Stephen Cooper como \emph{CEO}. Otro evento detectable es el pico que se da en el grado máximo un poco antes de Julio 2001, que coincide con una reunión de Cuatrimestre.
 
 \section{Ejercicio 2} \label{sec: ej2}
-En este ejercicio se trabaja con la base de datos \textit{Zachary's Karate Club}, que contiene las interacciones entre los miembros de un club de karate.Representa las relaciones de amistad entre los miembros de un club de karate universitario, estudiadas por Wayne Zachary en la década de 1970. El grafo contiene 34 nodos (miembros) que representan a los miembros del club y las aristas son no dirigidas y sin pesos e indican la existencia de una relación social fuera del club.
+En este ejercicio se trabaja con la base de datos \textit{Zachary's Karate Club}, que contiene las interacciones entre los miembros de un club de karate. Representa las relaciones de amistad entre los miembros de un club de karate universitario, estudiadas por Wayne Zachary en la década de 1970. El grafo contiene 34 nodos (miembros) que representan a los miembros del club y las aristas son no dirigidas y sin pesos e indican la existencia de una relación social fuera del club.
 
-Se trabaja principalmente con la biblioteca \textit{Pytorch Geometric}, con el objetivo de familiarizarse con el manejo de grafos en esta biblioteca y realizar análisis sobre la estructura del grafo. El objetivo del ejercicio es verificar empíricamente con funcionalidades de Pytorch Geometric las propiedades de la matriz Laplaciana que se demuestran en la subsección \ref{subsec:opcional}.
+Se trabaja principalmente con la biblioteca \textit{Pytorch Geometric}, con el objetivo de familiarizarse con el manejo de grafos en esta biblioteca y realizar análisis sobre la estructura del grafo. El objetivo del ejercicio es verificar empíricamente con funcionalidades de \textit{Pytorch Geometric} las propiedades de la matriz Laplaciana que se demuestran en la subsección \ref{subsec:opcional}.
 
 \subsection{Vectores y valores propios de la Matriz Laplaciana}
 Para calcular la matriz Laplaciana del grafo, se emplea la función \verb|get_laplacian| de \textit{Pytorch Geometric}. Posteriormente, se obtienen los vectores y valores propios utilizando \verb|torch.linalg.eig| y \verb|torch.linalg.eigvalsh|. Como resultado, se observa que uno de los valores propios es $8.61 \times 10^{-7}$, valor prácticamente nulo, lo que confirma la propiedad teórica de que un valor propio es cero.
@@ -233,7 +233,8 @@ A partir del cálculo de los valores propios de la matriz Laplaciana, se observa
 \subsection{Matriz de Incidencia}
 Utilizando la funcion de \textit{Pytorch Geometric} \verb|get_incidence|, se puede obtener la matriz de incidencia del grafo. Luego, simplemente realizando el producto de la matriz de incidencia por su traspuesta, se puede verificar fácilmente que el resultado es igual a la matriz Laplaciana.
 
-\subsection{Opcional} \label{subsec:opcional}
+\subsection{Ejercicio opcional} \label{subsec:opcional}
+
 En esta sección se demuestran algunas propiedades de la matriz Laplaciana.
 
 \newcommand{\ones}[1]{\mathbb{1}_{#1}}
@@ -348,6 +349,6 @@ obtenemos $N_c$ conjuntos de nodos $V_i$, aristas $E_i$, matrices de adyacencia 
 \end{equation*}
 Como el laplaciano cumple que $\lap = \diag - \adj$, y ambas matrices son diagonale por bloques, el laplaciano es diagonal por bloques.
 
-Partiendo del resultado obtenido en la sección~\ref{subsec:vector_propio_1}, concluimos que tenemos $N_c$ vectores propios con valor 0. Cada bloque del laplaciano tiene vector propio con valor 0 al vector con unos en la entradas asociadas al bloque y 0 en el resto de entradas, lo que resulta en $N_c$ vectores ortogonales tal que $\lap \mathbf{v} = 0$.
+Partiendo del resultado obtenido en la sección~\ref{subsec:vector_propio_1}, concluimos que tenemos $N_c$ vectores propios con valor 0. Cada bloque del laplaciano tiene vector propio con valor 0 al vector con unos en la entradas asociadas al bloque y 0 en el resto de entradas, lo que resulta en $N_c$ vectores ortogonales tal que $\lap \mathbf{v} = \vec{0}$.
 
 \end{document}
