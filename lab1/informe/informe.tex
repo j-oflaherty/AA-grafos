@@ -40,13 +40,13 @@
 \section{Introducción}
 Se presenta a continuación el informe del Laboratorio 1 para la materia Aprendizaje Automático para Datos en Grafos. Tiene como objetivo principal afianzar los conocimientos dados en el teórico sobre descriptores del grafo (por ejemplo: cantidad de nodos, cantidad de aristas, cantidad de aristas dirigidas) y distintas medidas de centralidad para identificar nodos y relaciones importantes entre ellos. Además, se busca familiarizarnos con las bibliotecas \textit{NetworkX} y \textit{Pytorch Geometric}, dos bibliotecas de Python utilizadas para trabajar con datos en grafos.
 
-El laboratorio se separa en dos ejercicios. En el primero se trabaja con la base de datos \textit{Enron Scandal} \footnote{\url{https://www.cs.cmu.edu/~enron/}} mientras que para el segundo se utiliza la base \textit{Zachary's Karate Club}. El informe se divide en la sección \ref{sec: ej1} donde se presenta el Ejercicio 1 y la sección \ref{sec: ej2} para el Ejercicio 2. En cada una se describe la base de datos utilizada, resultados obtenidos y conclusiones.
+El laboratorio se separa en dos ejercicios. En el primero se trabaja con la base de datos \textit{Enron Scandal} \footnote{\url{https://www.cs.cmu.edu/~enron/}} mientras que para el segundo se utiliza la base \textit{Zachary's Karate Club}. El informe se divide en la sección \ref{sec: ej1} donde se presenta el Ejercicio 1 y la sección \ref{sec: ej2} para el Ejercicio 2. En cada una se describe la base de datos utilizada, resultados obtenidos y conclusiones. Se puede consultar el código implementado en el repositorio de GitHub \url{https://github.com/j-oflaherty/AA-grafos/blob/main/lab1/Lab1_AAG2025.ipynb}.
 
 \section{Ejercicio 1} \label{sec: ej1}
 En este ejercicio se trabaja con la base de datos \textit{Enron Scandal}, que contiene correos electrónicos de empleados de la empresa Enron. Se hizo pública después del escándalo financiero de la empresa a principios de los 2000s. Se encuentra estructurada como un grafo dirigido, donde los nodos del grafo representan a los empleados y las aristas dirigidas representan los correos electrónicos enviados entre ellos.
 
-Se realizaron algunas tareas previas de limpieza, como por ejemplo la eliminación de \textit{self-loops} (aristas que tienen igual nodo de entrada y de salida) y la eliminación del texto de los correos electrónicos.
-\textcolor{red}{Julian: Eliminiación de texto en los correos electrónicos?}
+Para este trabajo, se descarta el cuerpo de los correos electrónicos, quedando solo los datos de cual nodo interactuó con cual y el nombre de cada nodo. Además, se realizó una tarea previa de limpieza eliminando los \textit{self-loops} (aristas que tienen igual nodo de entrada y de salida).
+
 
 \subsection{Análisis del grafo completo}
 En primera instancia se trabaja con el grafo que considera todos los correos electrónicos intercambiados entre los empleados. El grafo resultante se muestra en la figura \ref{fig:grafo}, donde como dice el título, el grosor de la arista está determinado por la cantidad de correos intercambiados entre los dos nodos y el color del nodo está determinado por su \textit{betweeness centrality}, que mide la importancia de un nodo al pasaje de información. Se pueden observar nodos que no tienen ninguna arista entrante ni saliente, como ser el 117, que son empleados que se encontraban en la base de datos debido a que se autoenviaron correos pero no recibieron ni enviaron otros.
@@ -68,11 +68,11 @@ Se muestran a continuación las tablas obtenidas al observar los nodos con grado
     \centering
     \begin{tabular}{|c|c|r|}
         \hline
-        \textbf{Nodo} & \textbf{mail} & \textbf{name and more} \\
+        \textbf{Nodo} & \textbf{mail} & \textbf{name and more}            \\
         \hline
-        71 & j..kaminski & Vince Kaminski Manager Risk Ma... \\
-        117 & mary.fischer & Mary Fischer Employee \\
-        135 & m..smith & xxx \\
+        71            & j..kaminski   & Vince Kaminski Manager Risk Ma... \\
+        117           & mary.fischer  & Mary Fischer Employee             \\
+        135           & m..smith      & xxx                               \\
         \hline
     \end{tabular}
     \caption{Tabla de nodos con grado de entrada cero.}
@@ -90,17 +90,17 @@ Se muestran a continuación las tablas obtenidas al observar los nodos con grado
     \centering
     \begin{tabular}{|c|c|r|}
         \hline
-        \textbf{Nodo} & \textbf{mail} & \textbf{name and more} \\
+        \textbf{Nodo} & \textbf{mail}   & \textbf{name and more}                  \\
         \hline
-        164 & steven.south & xxx \\
-        122 & michele.lokay & Michelle Lokay Employee Admi... \\
-        111 & mark.e.haedicke & Mark Haedicke Managing Director Lega... \\
-        42 & e.taylor & Mark Taylor Employee \\
-        71 & j..kaminski & Vince Kaminski Manager Risk Ma... \\
-        87 & judy.hernandez & xxx \\
-        117 & mary.fischer & Mary Fischer Employee \\
-        150 & rob.gay & xxx \\
-        52 & gretel.smith & xxx \\
+        164           & steven.south    & xxx                                     \\
+        122           & michele.lokay   & Michelle Lokay Employee Admi...         \\
+        111           & mark.e.haedicke & Mark Haedicke Managing Director Lega... \\
+        42            & e.taylor        & Mark Taylor Employee                    \\
+        71            & j..kaminski     & Vince Kaminski Manager Risk Ma...       \\
+        87            & judy.hernandez  & xxx                                     \\
+        117           & mary.fischer    & Mary Fischer Employee                   \\
+        150           & rob.gay         & xxx                                     \\
+        52            & gretel.smith    & xxx                                     \\
         \hline
     \end{tabular}
     \caption{Tabla de nodos con grado de salida cero.}
@@ -130,7 +130,7 @@ Se puede observar que los empleados populares tienden a estar más conectados de
 
 La figura \ref{fig:histogramas_grados} muestra la distribución de los grados de entrada y salida. Se observa que la mayoría de los nodos tienen grados de entrada y salida bajos, lo que indica que la mayoría de los empleados envían y reciben correos con pocos otros empleados. El grado de entrada está más concentrado entre 5 y 25, con pocos nodos que reciben correos de muchas personas.
 
-Por otro lado, la distribución del grado de salida presenta una cola más larga: existen algunos nodos que envían correos a muchos destinatarios (hasta cerca de 100), lo que podría indicar roles administrativos o de coordinación. En general, la distribución es asimétrica, especialmente en el grado de salida, lo que sugiere que hay nodos con comportamiento muy diferente al promedio. Esto indica que el grafo tiene una estructura donde la mayoría de los nodos interactúan con pocos otros, pero existen algunos nodos con alta actividad de envío, posiblemente personas con roles clave en la comunicación interna.
+Por otro lado, la distribución del grado de salida presenta una cola más larga: existen algunos nodos que envían correos a muchos destinatarios (hasta cerca de 100), lo que podría indicar roles administrativos o de coordinación, que suelen enviar comunicaciones generales para todos los empleados. En general, la distribución es asimétrica, especialmente en el grado de salida, lo que sugiere que hay nodos con comportamiento muy diferente al promedio. Esto indica que el grafo tiene una estructura donde la mayoría de los nodos interactúan con pocos otros, pero existen algunos nodos con alta actividad de envío, posiblemente personas con roles clave en la comunicación interna.
 
 \begin{figure}[htb]
     \centering
@@ -141,7 +141,7 @@ Por otro lado, la distribución del grado de salida presenta una cola más larga
 
 \subsection{Análisis temporal del grafo}
 % completar
-Los datos cuentan con etiquetas temporales, por lo que podemos analizar la evolución del grafo y su estructura a lo largo del tiempo. El primer paso consiste en 
+Los datos cuentan con etiquetas temporales, por lo que podemos analizar la evolución del grafo y su estructura a lo largo del tiempo. El primer paso consiste en
 agrupar los datos semanalmente y generar el grafo de interacciones asociado a esa semana.  El modelado temporal nos permite hacer un análisis de comportamientos
 anómalos en el funcionamiento de la empresa, lo que puede indicar eventos del escándalo.
 
@@ -185,10 +185,10 @@ Para medir la evolución temporal de los indicadores, se calculan los indicadore
     \label{fig:page_rank}
 \end{figure}
 
-En la figura \ref{fig:betweeness_centrality} se observa la evolución temporal de la Betweeness Centrality. Una primera observación es que al principio y al final del periodo, se obtienen valores muy bajos porque los grafos tienen pocos nodos, dado que son semanas de poca actividad.
+En la figura \ref{fig:betweeness_centrality} se observa la evolución temporal de la \textit{Betweeness Centrality}. Una primera observación es que al principio y al final del periodo, se obtienen valores muy bajos porque los grafos tienen pocos nodos, dado que son semanas de poca actividad.
 Debido a la variedad de nodos que toman el valor máximo semana a semana, la representación visual se torna dificil, pero aún así se puede notar como nodos que incialmente no eran relevantes toman relevancia a medida que pasa el tiempo. Estas mismas observaciones aplican a la figura \ref{fig:page_rank}\footnote{Los colores son independientes entre las dos figuras.}, solo que al principio y al final del periodo se obtienen valores más altos por la naturaleza de la métrica.
 
-En la figura~\ref{fig:betweeness_centrality}, el pico más alto coincide con un evento de la controversia, el lanzamiento de \emph{Enron Online}. Hay un segundo pico cerca alrededor de Julio del 2000 que coincide con la \emph{EBS Blockbuster Parnership}. Cerca de Enero 2002 observamos nuevos picos, que coincide con las fechas donde \emph{Enron} se declara en bancarrota.
+En la figura~\ref{fig:betweeness_centrality}, el pico más alto coincide con un evento de la controversia, el lanzamiento de \emph{Enron Online}. Hay un segundo pico alrededor de Julio del 2000 que coincide con la \emph{EBS Blockbuster Parnership}. Cerca de Enero 2002 observamos nuevos picos, que coincide con las fechas donde \emph{Enron} se declara en bancarrota.
 
 Del análisis de la figura~\ref{fig:page_rank} es más dificil detectar eventos puntuales, pero se nota como el comportamiento durante la controversia pareciera ser anómalo respecto a las semanas previas y posteriores, donde hubo mucho más movimiento en la red que lo normal.
 
