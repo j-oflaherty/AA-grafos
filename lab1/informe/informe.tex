@@ -7,43 +7,106 @@
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{hyperref}
-
+\usepackage{graphicx}
 
 \begin{document}
 
+
+
 \begin{center}
-{\LARGE Aprendizaje Automático para Datos en Grafos:} \\
-{\LARGE Laboratorio 1} \\
-\vspace{1em}
-\begin{minipage}{0.45\textwidth}
-\centering
-Graciana Castro \\
-4.808.848-2 \\
-gcastro@fing.edu.uy
-\end{minipage}
-\hfill
-\begin{minipage}{0.45\textwidth}
-\centering
-Julian O'Flaherty \\
-6.285.986-9 \\
-julian.o.flaherty@fing.edu.uy
-\end{minipage}
+    {\LARGE Aprendizaje Automático para Datos en Grafos:} \\
+    {\LARGE Laboratorio 1} \\
+    \vspace{1em}
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        Graciana Castro \\
+        4.808.848-2 \\
+        gcastro@fing.edu.uy
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        Julian O'Flaherty \\
+        6.285.986-9 \\
+        julian.o.flaherty@fing.edu.uy
+    \end{minipage}
 \end{center}
 
 
-\section{Introducción y Objetivos}
-Se presenta a continuación el informe del Laboratorio 1 para la materia Aprendizaje Automático para Datos en Grafos. Tiene como objetivo principal afianzar los conocimientos dados en el teórico sobre descriptores del grafo (por ejemplo: cantidad de nodos, cantidad de aristas, cantidad de aristas dirigidas) y distintas medidas de centralidad para identificar nodos y relaciones importantes entre ellos. Además, se busca familiarizarnos con las bibliotecas \textit{NetworkX} y \textit{Pytorch Geometric}, dos bibliotecas de Python utilizadas para trabajar con datos en grafos. 
+\section{Introducción}
+Se presenta a continuación el informe del Laboratorio 1 para la materia Aprendizaje Automático para Datos en Grafos. Tiene como objetivo principal afianzar los conocimientos dados en el teórico sobre descriptores del grafo (por ejemplo: cantidad de nodos, cantidad de aristas, cantidad de aristas dirigidas) y distintas medidas de centralidad para identificar nodos y relaciones importantes entre ellos. Además, se busca familiarizarnos con las bibliotecas \textit{NetworkX} y \textit{Pytorch Geometric}, dos bibliotecas de Python utilizadas para trabajar con datos en grafos.
 
-El laboratorio se separa en dos ejercicios. En el primero se trabaja con la base de datos \textit{Enron Scandal} mientras que para el segundo se utiliza la base \textit{Zachary's Karate Club}. El informe se divide en la sección \ref{sec: ej1} donde se presenta el Ejercicio 1 y la sección \ref{sec: ej2} para el Ejercicio 2. En cada una se describe la base de datos utilizada, procedimiento y resultados obtenidos y conclusiones.  
+El laboratorio se separa en dos ejercicios. En el primero se trabaja con la base de datos \textit{Enron Scandal} \footnote{\url{https://www.cs.cmu.edu/~enron/}} mientras que para el segundo se utiliza la base \textit{Zachary's Karate Club}. El informe se divide en la sección \ref{sec: ej1} donde se presenta el Ejercicio 1 y la sección \ref{sec: ej2} para el Ejercicio 2. En cada una se describe la base de datos utilizada, resultados obtenidos y conclusiones.
 
 \section{Ejercicio 1} \label{sec: ej1}
+En este ejercicio se trabaja con la base de datos \textit{Enron Scandal}, que contiene correos electrónicos de empleados de la empresa Enron. Se hizo pública después del escándalo financiero de la empresa a principios de los 2000s. Se encuentra estructurada como un grafo dirigido, donde los nodos del grafo representan a los empleados y las aristas dirigidas representan los correos electrónicos enviados entre ellos.
 
+Se realizaron algunas tareas previas de limpieza, como por ejemplo la eliminación de \textit{self-loops} (aristas que tienen igual nodo de entrada y de salida) y la eliminación del texto de los correos electrónicos.
 
-\subsection{Datos} 
+\subsection{Análisis del grafo completo}
+En primera instancia se trabaja con el grafo que considera todos los correos electrónicos intercambiados entre los empleados. El grafo resultante se muestra en la figura \ref{fig:grafo}, donde como dice el título, el grosor de la arista está determinado por la cantidad de correos intercambiados entre los dos nodos y el color del nodo está determinado por su \textit{betweeness centrality}. Se pueden observar nodos que no tienen ninguna arista entrante ni saliente, como ser el 117, que son empleados que se encontraban en la base de datos debido a que se autoenviaron correos pero no recibieron ni enviaron otros.
 
-\subsection{Resultados}
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.8\linewidth]{imagenes/ej1/grafo.png}
+    \caption{Esquema del grafo de correos electrónicos de Enron.}
+    \label{fig:grafo}
+\end{figure}
+
+Este grafo tiene en total 184 nodos conectados por 3007 aristas dirigidas (valores obtenidos a partir de las funciones \verb|number_of_nodes| y \verb|number_of_edges| de \textit{NetworkX}). Para calcular la cantidad de aristas no dirigidas, primero convertimos el grafo en uno no dirigido (con la función \verb|to_undirected|) y luego volvimos a utilizar la función \verb|number_of_edges|. De esta forma, se obtuvo que el grafo tiene 2097 aristas no dirigidas, indicando que no todos los empleados intercambiaron correos con todos. Se tienen en total 910 arcos mutuos, indicando que son 910 los pares de nodos que intercambiaron mails de ida y vuelta. Para calcular esto, se pasa el grafo a un grafo dirigido en el que se consideran solo los arcos mutuos (utilizando el parámetro \verb|reciprocal=True| de la función \verb|to_directed|). Otra forma de calcularlo es haciendo la resta entre el total de aristas dirigidas y el total de aristas no dirigidas, ya que esta diferencia indica la cantidad de aristas que no se cuentan porque ya fue contada la arista en sentido contrario.
+
+Para el cálculo del grado de entrada y de salida se puede utilizar las funciones \verb|in_degree| y \verb|out_degree| de \textit{NetworkX} o realizar el cálculo de aristas de entrada y salida a partir de la matriz de adyacencia. Se tienen tres nodos con grado de entrada cero, dos de los cuales además tienen grado de salida igual a cero. Son nodos aislados de la red, que representan empleados que se auto enviaron correos (como fue mencionado antes).
+
+Se muestran a continuación las tablas obtenidas al observar los nodos con grado de entrada y salida cero (figura \ref{fig:in_zero} y \ref{fig:out_zero} respectivamente).
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.6\linewidth]{imagenes/ej1/in_degree_zero.png}
+    \caption{Tabla de nodos con grado de entrada cero.}
+    \label{fig:in_zero}
+\end{figure}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.6\linewidth]{imagenes/ej1/out_degree_zero.png}
+    \caption{Tabla de nodos con grado de salida cero.}
+    \label{fig:out_zero}
+\end{figure}
+
+\subsection{Análisis de empleados populares}
+Se consideran empleados populares aquellos que recibieron correos de más de 30 personas distintas o enviaron correos a más de 30 personas distintas. Se muestra en la figura \ref{fig:grafos_populares} los grafos completos con los empleados populares marcados en rojo.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.8\linewidth]{imagenes/ej1/empleados_populares.png}
+    \caption{Grafo de correos electrónicos de empleados populares.}
+    \label{fig:grafos_populares}
+\end{figure}
+
+Se puede observar que los empleados populares tienden a estar más conectados dentro de la red, lo que sugiere que tienen un papel más central en la comunicación de la empresa. También se observa que varios de los empleados se encuentran destacados en los dos grafos, lo que indica que son tanto receptores como emisores activos. Si se busca en la base de datos quienes son estos empleados, se encuentran varios nombres reconocidos, como por ejemplo \textit{Jeff Skilling} (ex CEO de Enron), \textit{Kenneth Lay} (ex presidente de Enron) y \textit{Andrew Fastow} (ex CFO de Enron). En la columna \textit{name and more}, que en muchos casos muestra el nombre y puesto de la empresa, se observan varios individuos con la etiqueta \textit{CEO}, \textit{President} y \textit{Vice President}.
+
+\subsection{Histograma de grados de los nodos}
+
+La figura \ref{fig:histogramas_grados} muestra la distribución de los grados de entrada y salida. Se observa que la mayoría de los nodos tienen grados de entrada y salida bajos, lo que indica que la mayoría de los empleados envían y reciben correos con pocos otros empleados. El grado de entrada está más concentrado entre 5 y 25, con pocos nodos que reciben muchos correos.
+
+Por otro lado, la distribución del grado de salida presenta una cola más larga: existen algunos nodos que envían correos a muchos destinatarios (hasta cerca de 100), lo que podría indicar roles administrativos o de coordinación. En general, la distribución es asimétrica, especialmente en el grado de salida, lo que sugiere que hay nodos con comportamiento muy diferente al promedio. Esto indica que el grafo tiene una estructura donde la mayoría de los nodos interactúan con pocos otros, pero existen algunos nodos con alta actividad de envío, posiblemente personas con roles clave en la comunicación interna.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.8\linewidth]{imagenes/ej1/histogramas_grados_nodos.png}
+    \caption{Histograma de grados de los nodos.}
+    \label{fig:histogramas_grados}
+\end{figure}
+
+\subsection{Análisis temporal del grafo}
+% completar
 
 \section{Ejercicio 2} \label{sec: ej2}
+En este ejercicio se trabaja con la base de datos \textit{Zachary's Karate Club}, que contiene las interacciones entre los miembros de un club de karate.Representa las relaciones de amistad entre los miembros de un club de karate universitario, estudiadas por Wayne Zachary en la década de 1970. El grafo contiene 34 nodos (miembros) que representan a los miembros del club y las aristas son no dirigidas y sin pesos e indican la existencia de una relación social fuera del club.
+
+Se trabaja principalmente con la biblioteca \textit{Pytorch Geometric}, con el objetivo de familiarizarse con el manejo de grafos en esta biblioteca y realizar análisis sobre la estructura del grafo.
+
+
 \subsection{Opcional}
 
 \newcommand{\ones}[1]{\mathbb{1}_{#1}}
@@ -54,7 +117,7 @@ El laboratorio se separa en dos ejercicios. En el primero se trabaja con la base
 \newcommand{\x}{\mathbf{x}}
 
 Sea $G(V,E)$ un grafo simple (no dirigido, sin pesos y sin auto-aristas), con cantidad de vértices $N_v = |V|$ y cantidad de aristas $N_e = |E|$, y matriz de adyacencia $\mathbf{A}$. Sea $\mathbf{D} = \text{diag}(d_{1},\dots, d_{N_v})$ la matriz de grados y $\mathbf{L}=\mathbf{D}- \mathbf{A}$ la matriz laplaciana de $G$.
- 
+
 \subsubsection{Vector propio $\ones{N_v}$}
 \label{subsec:vector_propio_1}
 
@@ -66,7 +129,7 @@ Verificaremos que $\ones{N_v}$ es vector propio de $\lap$ con valor 0. Desarroll
 \end{equation}
 
 Donde en (a) se usa que $\adj \cdot \ones{N_v} = [d_1, \dots, d_{N_v}]$, resultado que
-se obtiene trivialmente a partir de la definición de matriz de adyacencia. 
+se obtiene trivialmente a partir de la definición de matriz de adyacencia.
 Por lo tanto, \eqref{eq:1_vecpropio_L} prueba que $\ones{N_v}$ es vector propio de $\lap$ con valor 0.
 
 \subsubsection{Relación del laplaciano y la matriz de incidencia}
@@ -75,9 +138,9 @@ Aunque $G$ es un grafo no dirigido, podemos asignarle a cada arista en $E$ una o
 \begin{equation}
     \bm_{ie} = \left\lbrace
     \begin{array}{r l}
-    1,& \text{si el vértice } i \text{ es el nodo inicial de la arista } e\\
-    -1,& \text{si el vértice } i \text{ es el nodo final de la arista } e\\
-    0,& \text{en otro caso}
+        1,  & \text{si el vértice } i \text{ es el nodo inicial de la arista } e \\
+        -1, & \text{si el vértice } i \text{ es el nodo final de la arista } e   \\
+        0,  & \text{en otro caso}
     \end{array}
     \right. .
     \label{eq:matrix_incidencia}
@@ -96,24 +159,24 @@ Para los valores fuera de la diagonal:
     \label{eq:BB_ij}
     \bm\bm^\top_{ij} = \bm_i\cdot\bm_j^\top = \sum_{e\in E} \bm_{ie} * \bm_{je} = \left\lbrace
     \begin{array}{r l}
-       -1, & \text{si $\exists e\in E$ entre i y j} \\
-       0, & \text{si $!\exists e \in E$ que conecte i y j}
+        -1, & \text{si $\exists e\in E$ entre i y j}         \\
+        0,  & \text{si $!\exists e \in E$ que conecte i y j}
     \end{array}
     \right.
 \end{equation}
-donde la última igualdad sucede porque solo hay una arista en $e \in E$ donde 
-$\bm_{ie}$ y $\bm_{je}$ son ambos no nulos, y para esa arista se cumple que uno es 
+donde la última igualdad sucede porque solo hay una arista en $e \in E$ donde
+$\bm_{ie}$ y $\bm_{je}$ son ambos no nulos, y para esa arista se cumple que uno es
 $1$ y el otro $-1$. Uniendo los resultados de \eqref{eq:BB_ii} y \eqref{eq:BB_ij} obtenemos:
 
 \begin{equation}
     \label{eq:L_igual_BB}
-   \bm\bm^\top_{ij} = \left\lbrace
-   \begin{array}{r l}
-        d_i, & \text{si $i=j$} \\
-        -1, & \text{si $i\neq j$ y existe una arista entre i y j} \\
-        0, & \text{si $i\neq j$ y no existe una arista entre i y j}
-   \end{array}
-   \right. = \lap
+    \bm\bm^\top_{ij} = \left\lbrace
+    \begin{array}{r l}
+        d_i, & \text{si $i=j$}                                        \\
+        -1,  & \text{si $i\neq j$ y existe una arista entre i y j}    \\
+        0,   & \text{si $i\neq j$ y no existe una arista entre i y j}
+    \end{array}
+    \right. = \lap
 \end{equation}
 que coincide con la definición del laplaciano.
 
@@ -142,21 +205,21 @@ obtenemos $N_c$ conjuntos de nodos $V_i$, aristas $E_i$, matrices de adyacencia 
 \begin{equation*}
     \begin{array}{l c r}
         \adj = \left(\begin{matrix}
-            \adj_1 & 0 & \dots & 0 \\
-            0 & \adj_2 & \dots & 0 \\
-            \vdots & \vdots & \ddots & \vdots \\
-            0 & 0 & \dots & \adj_{N_c}
-        \end{matrix}\right) 
-        & &
+                             \adj_1 & 0      & \dots  & 0          \\
+                             0      & \adj_2 & \dots  & 0          \\
+                             \vdots & \vdots & \ddots & \vdots     \\
+                             0      & 0      & \dots  & \adj_{N_c}
+                         \end{matrix}\right)
+         &  &
         \diag =\left(\begin{matrix}
-             \diag_1 & 0 & \dots & 0 \\
-            0 & \diag_2 & \dots & 0 \\
-            \vdots & \vdots & \ddots & \vdots \\
-            0 & 0 & \dots & \diag_{N_c}
-        \end{matrix}\right)
+                             \diag_1 & 0       & \dots  & 0           \\
+                             0       & \diag_2 & \dots  & 0           \\
+                             \vdots  & \vdots  & \ddots & \vdots      \\
+                             0       & 0       & \dots  & \diag_{N_c}
+                         \end{matrix}\right)
     \end{array}
 \end{equation*}
-Como el laplaciano cumple que $\lap = \diag - \adj$, y ambas matrices son diagonale por bloques, el laplaciano es diagonal por bloques. 
+Como el laplaciano cumple que $\lap = \diag - \adj$, y ambas matrices son diagonale por bloques, el laplaciano es diagonal por bloques.
 
 Partiendo del resultado obtenido en la sección~\ref{subsec:vector_propio_1}, concluimos que tenemos $N_c$ vectores propios con valor 0. Cada bloque del laplaciano tiene vector propio con valor 0 al vector con unos en la entradas asociadas al bloque y 0 en el resto de entradas, lo que resulta en $N_c$ vectores ortogonales tal que $\lap \mathbf{v} = 0$.
 
