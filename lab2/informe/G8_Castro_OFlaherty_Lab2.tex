@@ -1,0 +1,91 @@
+\documentclass{article}
+
+\usepackage[a4paper]{geometry}
+\usepackage[spanish]{babel}
+\usepackage{xcolor}
+
+\usepackage{mathbbol}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{hyperref}
+\usepackage{graphicx}
+
+% Cambiar 'Cuadro' -> 'Tabla'
+\addto\captionsspanish{
+    \renewcommand{\tablename}{Tabla}
+}
+
+\begin{document}
+
+\begin{center}
+    {\Large Aprendizaje Automático para Datos en Grafos} \\
+    {\LARGE \textbf{Laboratorio 2}} \\
+    \vspace{2em}
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        Graciana Castro \\
+        4.808.848-2 \\
+        gcastro@fing.edu.uy
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        Julian O'Flaherty \\
+        6.285.986-9 \\
+        julian.o.flaherty@fing.edu.uy
+    \end{minipage}
+\end{center}
+
+
+\section{Introducción}
+
+Se presenta a continuación el informe del Laboratorio 2 para la materia Aprendizaje Automático para Datos en Grafos. El objetivo principal de este trabajo es analizar empíricamente propiedades estructurales de grandes redes reales y profundizar en el estudio de algoritmos de partición y detección de comunidades en grafos. A lo largo del laboratorio se busca validar conceptos teóricos vistos en clase, aplicando herramientas como \textit{NetworkX}, \textit{PyTorch Geometric} y \textit{graspologic}, y desarrollando habilidades para la interpretación de resultados obtenidos sobre diferentes tipos de grafos.
+
+El laboratorio se divide en dos grandes bloques. En el primero, presentado en la sección \ref{sec: estructuras}, se estudian propiedades globales y estructura de grandes redes, como la distribución de grados y la modularidad. Se trabaja con datasets de citaciones entre papers y de vuelos entre aeropuertos. En la sección \ref{sec: comunidades} se implementan y comparan algoritmos espectrales para la partición y detección de comunidades en grafos, aplicándolos sobre el grafo de Zachary's Karate Club y sobre un grafo real de blogs políticos.
+
+El código implementado puede consultarse en el repositorio de GitHub \url{https://github.com/j-oflaherty/AA-grafos/blob/main/lab2/Lab2_AAG2025.ipynb}.
+
+\section{Estructuras de grandes redes} \label{sec: estructuras}
+
+\subsection{Distribución de grados}
+La distribución de grados de un grafo $G$ se refiere al conjunto de fracciones $p_k$ que representan la proporción de vértices con grado $k$ en el grafo. Es una medida importante para caracterizar la estructura de la red, ya que proporciona información sobre cómo se conectan los nodos entre sí.
+
+En muchas redes reales, como las redes sociales o las redes de citas académicas, la distribución de grados sigue una \textit{power-law},que se define de la forma: $p_k = Ck^{-\alpha}$, donde $C$ es una constante de normalización y $\alpha$ es el exponente que caracteriza la distribución. Esta forma implica que la probabilidad de encontrar un nodo con grado $k$ disminuye rápidamente a medida que $k$ aumenta.
+
+En la figura \ref{fig: degree_distribution} se muestra la distribución de grados del grafo de citaciones entre papers. Se observa que para hay un rango de $k$ para el cual la distribución sigue una \textit{power-law}, sin embargo no lo cumple para todos (hecho que no es extraño en redes reales). Para evidenciar si efectivamente la distribución sigue una \textit{power-law} en cierto rango, se realiza la gráfica utilizando \textit{bins} equiespaciados, donde la tendencia lineal se hace más evidente.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/dist_grado_Cora.png}
+    \caption{Distribución de grados del grafo de citaciones entre papers. En la figura (a) se observa la distribución en escala logarítimica, mientras que en la figura (b) se muestra en bins equiespaciados.}
+    \label{fig: degree_distribution}
+\end{figure}
+
+La distribución que se ve en la figura \ref{fig: degree_distribution}(b) sigue la denominada \textit{Distribución de Pareto}. Una variable aleatoria $X$ se dice que tiene distribución de Pareto si tiene una función de densidad de probabilidad dada por:
+
+$$p(k) = \left\lbrace \begin{array}{c c} C k^{-\alpha} & \text{ si } k\geq k_\text{min} \\ 0 & \text{ en otro caso} \end{array}\right.$$
+
+Para hallar el $C$ que verifique que esta distribución es una densidad, se integra sobre su dominio y se iguala a 1:
+
+$$
+    \int_{0}^{\infty} p(k) dk = \int_{k_{\text{min}}}^{\infty} C k^{-\alpha} dk = C \int_{k_{\text{min}}}^{\infty} k^{-\alpha}dk \\
+    \int_{0}^{\infty} p(k) dk = C \left[ \frac{k_{\text{min}}^{-\alpha+1}}{-\alpha+1} \right] = 1 \\
+    \Rightarrow C = \frac{-\alpha+1}{k_{\text{min}}^{-\alpha+1}}
+$$
+
+Como se demuestra en la sección \ref{sec: pareto}, el estimador de máxima verosimilitud para el exponente $\alpha$ de la distribución de Pareto es:
+
+$$
+    \hat{\alpha} = 1 + n \left[ \sum_{i=1}^{n} \ln\left(\frac{k_i}{k_{\text{min}}}\right) \right]^{-1}.
+$$
+
+Para calcularlo, se realizó una función que recibe como parámetros una lista de los grados de un grafo y el valor de $k$ a partir del cual vale la \textit{power-law}. Aplicando esta función al grafo de citaciones entre papers, considerando $k_{\text{min}} = 10$, se obtiene un valor de $\hat{\alpha} = 4.030$.
+
+\subsection{Assortative Mixing}
+
+
+\section{Detección de comunidades} \label{sec: comunidades}
+
+\section{Estimador de máxima verosimilitud para el exponente de la distribución de Pareto} \label{sec: pareto}
+
+\end{document}
