@@ -11,6 +11,9 @@
 \usepackage{graphicx}
 \usepackage{subcaption}
 
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
 % Cambiar 'Cuadro' -> 'Tabla'
 \addto\captionsspanish{
     \renewcommand{\tablename}{Tabla}
@@ -136,6 +139,65 @@ Se entiende que es coherente que la modularidad del grafo de aeropuertos sea baj
 
 \section{Detección de comunidades} \label{sec: comunidades}
 
+En esta sección trabajaremos sobre el grafo de Zachary's Karate Club, un grafo muy conocido por ser un desafío para la detección de comunidades aunque es un grafo pequeño. El grafo surge del análisis de las interacciones sociales entre miembros de un club de karate, y como quedo divido  el club luego de su disolución.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/karate_club.png}
+    \caption{Grafo de Zachary's Karate Club. El color del nodo indica la comunidad a la que pertenece.}
+    \label{fig: karate_club}
+\end{figure}
+
+Nuestro objetivo cuando hacemos análisis de comunidades es encontrar la partición del grafo observada en figura~\ref{fig: karate_club} solo a partir de las relaciones entre los nodos. Los métodos se pueden dividir en dos categorías:
+\begin{itemize}
+    \item \textbf{Partición de grafo}: Busca dividir el grafo en dos comunidades de tamaño fijo, que es un parámetro modificable del algoritmo.
+    \item \textbf{Detección de comunidades}: Busca encontrar comunidades en el grafo sin pre-especificar el tamaño.
+\end{itemize}
+
+\subsection{Spectral Partitioning}
+
+El \emph{Spectral Clustering} es un método de partición de grafos que se basa en la descomposición espectral de la matriz de adyacencia. El algoritmo busca hacer la partición del grafo que minimiza el costo del corte, donde el costo se define como la cantidad de aristas que se cortan. Matemáticamente, queremos hallar $\mathbf{s}\in{\pm 1}^{N_v}$ que minimice el costo del corte:
+\begin{equation*}
+    C = \frac{1}{2} \sum_{i,j} A_{ij} (1 - \mathbf{s}_i \mathbf{s}_j)
+\end{equation*}
+Relajando $\mathbf{s}\in{\pm 1}^{N_v}$ a $\mathbf{\hat{s}}\in{\mathbb{R}}^{N_v}$, podemos plantear el problema como:
+\begin{equation*}
+    \mathbf{\hat{s}} = \arg \min_{\mathbf{s}\in{\mathbb{R}}^{N_v}} \mathbf{s}^\top \mathbf{L} \mathbf{s}, \quad \text{sujeto a } \mathbf{1}^\top \mathbf{s} = N_1 - N_2 \text{ y } \mathbf{s}^\top \mathbf{s} = 1
+\end{equation*}
+Fiedler~\cite{Fiedler1973} caracterizó este problema y demostró que la solución es:
+\begin{equation*}
+    \mathbf{\hat{s}} = \mathbf{v}_2 + \frac{N_1 - N_2}{N_v} \mathbf{1}
+\end{equation*}
+donde $\mathbf{v}_2$ es el vector asociado al segundo valor propio más chico de la matriz Laplaciana $\mathbf{L}$, al que se le da el nombre de vector de \emph{Fiedler}. Para asignar las
+etiquetas de las comunidades, maximizamos la similitud $\mathbf{s}^\top\mathbf{\hat{s}}$, lo que resulta en
+\begin{equation}
+    \label{eq: fiedler_asignation}
+    s_i = f(\mathbf{v}_2) = \left\lbrace 
+    \begin{array}{c l}
+         1, & \text{si } [\mathbf{v}_2]_i \text{ esta entre las $N_1$ componentes más grandes de $\mathbf{v}_2$} \\
+        -1, & \text{en otro caso}
+    \end{array}\right.
+\end{equation}
+El pseudocódigo de \emph{Spectral Partitioning} se describe en el algoritmo~\ref{alg: spectral_partitioning}.
+\begin{algorithm}
+    \caption{Spectral Partitioning}
+    \label{alg: spectral_partitioning}
+    \begin{algorithmic}
+    \Require Grafo $G = (V, E)$ con $n$ nodos; $n_1$, $n_2$ enteros positivos tales que $n_1 + n_2 = n$
+    \State  $\mathbf{L} \leftarrow $ laplaciana de G
+    \State $\mathbf{v}_2 \leftarrow $ vector asociado al segundo valor propio más chico de $\mathbf{L}$ (vector de Fiedler)\\ 
+    \Return $C = \mathbf{f}(\mathbf{v}_2)$ con $\mathbf{f}=(f_1,f_2,\ldots,f_N)$ y $f$ definida en \eqref{eq: fiedler_asignation}
+    \end{algorithmic}
+\end{algorithm}
+
+En la figura \ref{fig: spectral_partitioning} se puede observar la partición del grafo de Zachary's Karate Club utilizando el algoritmo de Spectral Partitioning con $n_1 = n_2 = 17$. Se observa que el algoritmo divide perfectamente el grafo, descubriendo las comunidades correctas.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\textwidth]{imagenes/spectral_partitioning.png}
+    \caption{Partición del grafo de Zachary's Karate Club utilizando el algoritmo de Spectral Partitioning.}
+    \label{fig: spectral_partitioning}
+\end{figure}
 
 
 \section{Estimador de máxima verosimilitud para el exponente de la distribución de Pareto} \label{sec: pareto}
@@ -165,6 +227,8 @@ $$
     \Rightarrow \hat{\alpha} = 1 + n \left[ \sum_{i=1}^{n} \ln\left(\frac{k_i}{k_\text{min}}\right) \right]^{-1}
 $$
 
-
+\section{Referencias}
+\bibliographystyle{plain}
+\bibliography{refs}
 
 \end{document}
