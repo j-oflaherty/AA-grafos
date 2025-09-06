@@ -120,6 +120,31 @@ Se entiende que es coherente que la modularidad del grafo de aeropuertos sea baj
 
 \section{Estimador de máxima verosimilitud para el exponente de la distribución de Pareto} \label{sec: pareto}
 
+Sea $X$ una variable aleatoria con distribución de Pareto, por lo tanto su función de densidad de probabilidad es:
+
+$$p(x) = \left\lbrace \begin{array}{c c} C x^{-\alpha} & \text{ si } x\geq x_\text{min} \\ 0 & \text{ en otro caso} \end{array}\right.$$
+
+\subsection{Función de log-verosimilitud}
+
+La función de log-verosimilitud para una muestra $x_1, x_2, \ldots, x_n$ es la suma de los logaritmos de las funciones de densidad evaluadas en cada punto de la muestra. Para el ejercicio presentado en la sección \ref{sec: estructuras}, en que se tiene una Distribución de Pareto con $C = \frac{-\alpha+1}{k_{\text{min}}^{-\alpha+1}}$, se halla la función de log-verosimilitud:
+
+\begin{align}
+    \mathcal{L}_n(\alpha) & = \log \left[\prod_{i=1}^{n} \left( \frac{1-\alpha}{k_{\text{min}}^{1-\alpha}} k_i^{-\alpha} \right) \right] \nonumber               \\
+                          & = \sum_{i=1}^{n} \left[ \log(1-\alpha) - log\log(k_{\text{min}}) - \log \left(\frac{k_i}{k_{min}} \right)^{\alpha} \right] \nonumber \\
+                          & = n \log(1-\alpha) - n\log(k_{\text{min}}) - \alpha \sum_{i=1}^{n} \log\left(\frac{k_i}{k_{min}} \right)
+\end{align}
+
+donde en la primera igualdad se toma el logaritmo, en la segunda se utiliza la propiedad de que el logaritmo del producto es la suma de los logaritmos, y en la tercera se resuelven las sumatorias que no dependen de $i$ y se utiliza la propiedad del logaritmo de la potencia.
+
+\subsection{Estimador de Máxima Verosimilitud para $\alpha$}
+
+Partiendo de la ecuación \ref{eq: log-verosimilitud}, se deriva respecto a $\alpha$ e iguala a cero para encontrar el máximo:
+$$
+    \frac{d\mathcal{L}_n(\alpha)}{d\alpha} = \frac{n}{\alpha -1} - \sum_{i=1}^n \log \left(\frac{k_i}{k_\text{min}}\right) = 0 \\
+    \Rightarrow \frac{n}{\alpha -1} = \sum_{i=1}^n \log \left(\frac{k_i}{k_\text{min}}\right) \\
+    \Rightarrow \hat{\alpha} = 1 + n \left[ \sum_{i=1}^{n} \ln\left(\frac{k_i}{k_\text{min}}\right) \right]^{-1}
+$$
+
 
 
 \end{document}
