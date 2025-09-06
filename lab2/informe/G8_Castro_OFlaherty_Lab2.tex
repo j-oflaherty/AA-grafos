@@ -9,6 +9,7 @@
 \usepackage{amsfonts}
 \usepackage{hyperref}
 \usepackage{graphicx}
+\usepackage{subcaption}
 
 % Cambiar 'Cuadro' -> 'Tabla'
 \addto\captionsspanish{
@@ -66,19 +67,36 @@ La distribución de grados de un grafo $G$ se refiere al conjunto de fracciones 
 En muchas redes reales, como las redes sociales o las redes de citas académicas, la distribución de grados sigue una \textit{power-law}, que se define de la forma: $p_k = Ck^{-\alpha}$, donde $C$ es una constante de normalización y $\alpha$ es el exponente que caracteriza la distribución. Esta forma implica que la probabilidad de encontrar un nodo con grado $k$ disminuye rápidamente a medida que $k$ aumenta.
 
 
-En la figura \ref{fig: degree_distribution} se muestra la distribución de grados del grafo de citaciones entre papers. Se observa que existe un rango de $k$ para el cual la distribución sigue una \textit{power-law}; sin embargo, no se cumple para todos los valores (hecho que no resulta extraño en redes reales). Para evidenciar si efectivamente la distribución sigue una \textit{power-law} en cierto rango, se realiza la gráfica utilizando \textit{bins} equiespaciados, donde la tendencia lineal se hace más evidente.
+\textcolor{red}{En la figura \ref{fig: degree_distribution} se muestra la distribución de grados del grafo de citaciones entre papers. Se observa que existe un rango de $k$ para el cual la distribución sigue una \textit{power-law}; sin embargo, no se cumple para todos los valores (hecho que no resulta extraño en redes reales). Para evidenciar si efectivamente la distribución sigue una \textit{power-law} en cierto rango, se realiza la gráfica utilizando \textit{bins} equiespaciados, donde la tendencia lineal se hace más evidente.}
+
+\textcolor{blue}{En la figura \ref{fig: degree_distribution} se muestra la distribución de grados del grafo de citaciones entre papers. En la figura \ref{fig: degree_distribution_lineal} se observa la distribución en bins equiespaciados donde se puede observar la tendencia lineal, aunque contiene muchos bins que no se ajustan a esa distribución. Esto sucede por la falta de datos, a medida que aumenta el grado hay menos nodos, por lo que los bins tienen menos muestras. Para contrarestar este efecto, se eligen bins en escala logarítmica con base 2, donde en la figura~\ref{fig: degree_distribution_log} se puede observar la tendencia lineal en el rango de $k$ para el cual la distribución sigue una \textit{power-law}.}
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.8\textwidth]{imagenes/dist_grado_Cora.png}
-    \caption{Distribución de grados del grafo de citaciones entre papers. En la figura (a) se observa la distribución en escala logarítimica, mientras que en la figura (b) se muestra en bins equiespaciados.}
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{imagenes/dist_grado_Cora_lineal.png}
+        \caption{Distribución de grados en bins equiespaciados}
+        \label{fig: degree_distribution_lineal}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{imagenes/dist_grado_Cora_log.png}
+        \caption{Distribución de grados en escala logarítmica}
+        \label{fig: degree_distribution_log}
+    \end{subfigure}
+    \caption{Distribución de grados del grafo de citaciones entre papers. En la figura \ref{fig: degree_distribution_lineal} se muestra en bins equiespaciados, mientras que en la figura \ref{fig: degree_distribution_log} se observa la distribución en escala logarítmica.}
     \label{fig: degree_distribution}
 \end{figure}
 
 
-La distribución que se observa en la figura \ref{fig: degree_distribution}(b) sigue la denominada \textit{Distribución de Pareto}. Una variable aleatoria $X$ se dice que tiene distribución de Pareto si tiene una función de densidad de probabilidad dada por:
+La distribución que se observa en la figura \ref{fig: degree_distribution_log} sigue la denominada \textit{Distribución de Pareto}. Una variable aleatoria $X$ se dice que tiene distribución de Pareto si tiene una función de densidad de probabilidad dada por:
 
-$$p(k) = \left\lbrace \begin{array}{c c} C k^{-\alpha} & \text{ si } k\geq k_\text{min} \\ 0 & \text{ en otro caso} \end{array}\right.$$
+\begin{equation}
+    \label{eq:pareto}
+    p(k) = \left\lbrace \begin{array}{c c} C k^{-\alpha} & \text{ si } k\geq k_\text{min} \\ 0 & \text{ en otro caso} \end{array}\right.
+\end{equation}
 
 
 Para hallar el $C$ que verifica que esta distribución es una densidad, se integra sobre su dominio y se iguala a 1:
@@ -92,10 +110,10 @@ $$
 
 Como se demuestra en la sección \ref{sec: pareto}, el estimador de máxima verosimilitud para el exponente $\alpha$ de la distribución de Pareto es:
 
-$$
-    \hat{\alpha} = 1 + n \left[ \sum_{i=1}^{n} \ln\left(\frac{k_i}{k_{\text{min}}}\right) \right]^{-1}.
-$$
-
+\begin{equation}
+    \label{eq: alpha_pareto}
+    \hat{\alpha} = 1 + n \left[ \sum_{i=1}^{n} \ln\left(\frac{k_i}{k_{\text{min}}}\right) \right]^{-1}
+\end{equation}
 
 Para calcularlo, se implementa una función que recibe como parámetros una lista de los grados de un grafo y el valor de $k$ a partir del cual vale la \textit{power-law}. Aplicando esta función al grafo de citaciones entre papers, considerando $k_{\text{min}} = 10$, se obtiene un valor de $\hat{\alpha} = 4.030$.
 
@@ -117,6 +135,8 @@ Para el cálculo de modularidad, se utiliza primero una función que recibe las 
 Se entiende que es coherente que la modularidad del grafo de aeropuertos sea baja, ya que los aeropuertos poco transitados suelen tener vuelos hacia aeropuertos más grandes, y no entre ellos. La modularidad del grafo de citaciones es más alta, ya que los artículos tienden a citar otros artículos relacionados a la misma disciplina.
 
 \section{Detección de comunidades} \label{sec: comunidades}
+
+
 
 \section{Estimador de máxima verosimilitud para el exponente de la distribución de Pareto} \label{sec: pareto}
 
