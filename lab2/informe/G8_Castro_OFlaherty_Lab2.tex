@@ -3,6 +3,7 @@
 \usepackage[a4paper]{geometry}
 \usepackage[spanish]{babel}
 \usepackage{xcolor}
+\usepackage{placeins}
 
 \usepackage{mathbbol}
 \usepackage{amsmath}
@@ -44,7 +45,8 @@
 \section{Introducción}
 
 
-Se presenta a continuación el informe del Laboratorio 2 para la materia Aprendizaje Automático para Datos en Grafos. El objetivo principal de este trabajo es analizar empíricamente propiedades estructurales de grandes redes reales y profundizar en el estudio de algoritmos de partición y detección de comunidades en grafos. A lo largo del laboratorio se busca validar conceptos teóricos vistos en clase, aplicando herramientas como \textit{NetworkX}, \textit{PyTorch Geometric} y \textit{graspologic}, y desarrollar habilidades para la interpretación de resultados obtenidos sobre diferentes tipos de grafos.
+
+Este informe presenta el Laboratorio 2 para la materia Aprendizaje Automático para Datos en Grafos. El objetivo principal es analizar empíricamente propiedades estructurales de grandes redes reales y profundizar en el estudio de algoritmos de partición y detección de comunidades en grafos. A lo largo del laboratorio se busca validar conceptos teóricos vistos en clase, aplicando herramientas como \textit{NetworkX}, \textit{PyTorch Geometric} y \textit{graspologic}, y se desarrollan habilidades para la interpretación de resultados obtenidos sobre diferentes tipos de grafos.
 
 En la sección \ref{sec: datasets} del informe se presentan las bases de datos utilizadas en el laboratorio. En el primer ejercicio, presentado en la sección \ref{sec: estructuras}, se estudian propiedades globales y estructura de grandes redes, como la distribución de grados y la modularidad. Se trabaja con las bases de datos de citaciones entre papers y de vuelos entre aeropuertos. En la sección \ref{sec: comunidades} se implementan y comparan algoritmos espectrales para la partición y detección de comunidades en grafos, aplicándolos sobre el grafo de Zachary's Karate Club y sobre un grafo real de blogs políticos.
 
@@ -64,15 +66,15 @@ Para este trabajo se utilizan las siguientes bases de datos:
 
 \subsection{Distribución de grados}
 
+
 La distribución de grados de un grafo $G$ se refiere al conjunto de fracciones $p_k$ que representan la proporción de vértices con grado $k$ en el grafo. Es una medida importante para caracterizar la estructura de la red, ya que proporciona información sobre cómo se conectan los nodos entre sí.
+
 
 
 En muchas redes reales, como las redes sociales o las redes de citas académicas, la distribución de grados sigue una \textit{power-law}, que se define de la forma: $p_k = Ck^{-\alpha}$, donde $C$ es una constante de normalización y $\alpha$ es el exponente que caracteriza la distribución. Esta forma implica que la probabilidad de encontrar un nodo con grado $k$ disminuye rápidamente a medida que $k$ aumenta.
 
 
-\textcolor{red}{En la figura \ref{fig: degree_distribution} se muestra la distribución de grados del grafo de citaciones entre papers. Se observa que existe un rango de $k$ para el cual la distribución sigue una \textit{power-law}; sin embargo, no se cumple para todos los valores (hecho que no resulta extraño en redes reales). Para evidenciar si efectivamente la distribución sigue una \textit{power-law} en cierto rango, se realiza la gráfica utilizando \textit{bins} equiespaciados, donde la tendencia lineal se hace más evidente.}
-
-\textcolor{blue}{En la figura \ref{fig: degree_distribution} se muestra la distribución de grados del grafo de citaciones entre papers. En la figura \ref{fig: degree_distribution_lineal} se observa la distribución en bins equiespaciados donde se puede observar la tendencia lineal, aunque contiene muchos bins que no se ajustan a esa distribución. Esto sucede por la falta de datos, a medida que aumenta el grado hay menos nodos, por lo que los bins tienen menos muestras. Para contrarestar este efecto, se eligen bins en escala logarítmica con base 2, donde en la figura~\ref{fig: degree_distribution_log} se puede observar la tendencia lineal en el rango de $k$ para el cual la distribución sigue una \textit{power-law}.}
+La figura \ref{fig: degree_distribution} muestra la distribución de grados del grafo de citaciones entre papers. En la figura \ref{fig: degree_distribution_lineal} se observa la distribución en bins equiespaciados, donde se aprecia la tendencia lineal, aunque existen muchos bins que no se ajustan a esa distribución. Esto ocurre por la falta de datos: a medida que aumenta el grado, hay menos nodos, por lo que los bins contienen menos muestras. Para contrarrestar este efecto, se eligen bins en escala logarítmica con base 2, y en la figura~\ref{fig: degree_distribution_log} se observa la tendencia lineal en el rango de $k$ para el cual la distribución sigue una \textit{power-law}.
 
 \begin{figure}
     \centering
@@ -94,12 +96,14 @@ En muchas redes reales, como las redes sociales o las redes de citas académicas
 \end{figure}
 
 
-La distribución que se observa en la figura \ref{fig: degree_distribution_log} sigue la denominada \textit{Distribución de Pareto}. Una variable aleatoria $X$ se dice que tiene distribución de Pareto si tiene una función de densidad de probabilidad dada por:
+
+La distribución que se observa en la figura \ref{fig: degree_distribution_log} sigue la denominada \textit{Distribución de Pareto}. Una variable aleatoria $X$ tiene distribución de Pareto si su función de densidad de probabilidad está dada por:
 
 \begin{equation}
     \label{eq:pareto}
     p(k) = \left\lbrace \begin{array}{c c} C k^{-\alpha} & \text{ si } k\geq k_\text{min} \\ 0 & \text{ en otro caso} \end{array}\right.
 \end{equation}
+
 
 
 Para hallar el $C$ que verifica que esta distribución es una densidad, se integra sobre su dominio y se iguala a 1:
@@ -111,6 +115,7 @@ $$
 $$
 
 
+
 Como se demuestra en la sección \ref{sec: pareto}, el estimador de máxima verosimilitud para el exponente $\alpha$ de la distribución de Pareto es:
 
 \begin{equation}
@@ -118,11 +123,13 @@ Como se demuestra en la sección \ref{sec: pareto}, el estimador de máxima vero
     \hat{\alpha} = 1 + n \left[ \sum_{i=1}^{n} \ln\left(\frac{k_i}{k_{\text{min}}}\right) \right]^{-1}
 \end{equation}
 
-Para calcularlo, se implementa una función que recibe como parámetros una lista de los grados de un grafo y el valor de $k$ a partir del cual vale la \textit{power-law}. Aplicando esta función al grafo de citaciones entre papers, considerando $k_{\text{min}} = 10$, se obtiene un valor de $\hat{\alpha} = 4.030$.
+
+Para calcularlo, se implementa una función que recibe como parámetros una lista de los grados de un grafo y el valor de $k$ a partir del cual vale la \textit{power-law}. Al aplicar esta función al grafo de citaciones entre papers, considerando $k_{\text{min}} = 10$, se obtiene un valor de $\hat{\alpha} = 4.030$.
 
 \subsection{Assortative Mixing}
 
-Se define el \textit{assortative mixing} como la tendencia de los nodos en una red a conectarse con otros nodos que son similares en algún aspecto. En el contexto de redes sociales, por ejemplo, esto puede significar que las personas tienden a formar conexiones con otras personas que tienen intereses, antecedentes o características demográficas similares. Se utiliza como medida de similaridad la \textit{modularidad}, que mide la proporción entre las aristas que hay entre nodos de un mismo tipo y las esperadas si la asignación de aristas fuera aleatoria. Formalmente, está definida como:
+
+El \textit{assortative mixing} se define como la tendencia de los nodos en una red a conectarse con otros nodos que son similares en algún aspecto. En el contexto de redes sociales, por ejemplo, esto puede significar que las personas tienden a formar conexiones con otras personas que tienen intereses, antecedentes o características demográficas similares. Se utiliza como medida de similaridad la \textit{modularidad}, que mide la proporción entre las aristas que hay entre nodos de un mismo tipo y las esperadas si la asignación de aristas fuera aleatoria. Formalmente, está definida como:
 
 \begin{equation}
     \label{eq: modularity}
@@ -132,7 +139,8 @@ Se define el \textit{assortative mixing} como la tendencia de los nodos en una r
 donde $m$ es la cantidad total de aristas en la red, $A_{ij}$ son las entradas de la matriz de adyacencia, $k_i$ es el grado del nodo $i$ y $\delta(r,p)$ es la delta de Kronecker: $\delta(r,p) = 1$ si $r=p$ y $\delta(r,p) = 0$ si $r\neq p$. Toma valores mayores a uno si hay mucha interconexión entre nodos del mismo tipo, y valores menores a uno en el caso contrario.
 
 
-Para el cálculo de modularidad, se utiliza primero una función que recibe las etiquetas del grafo para separarlo en comunidades y luego calcula la modularidad utilizando la función \verb|networkx.algorithms.community.modularity|. Se obtienen los siguientes resultados para las bases de datos de citaciones entre papers y de vuelos entre aeropuertos:
+
+Para el cálculo de modularidad, primero se utiliza una función que recibe las etiquetas del grafo para separarlo en comunidades y luego se calcula la modularidad utilizando la función \verb|networkx.algorithms.community.modularity|. Se obtienen los siguientes resultados para las bases de datos de citaciones entre papers y de vuelos entre aeropuertos:
 \begin{itemize}
     \item \textbf{Citations (Cora)}: La modularidad obtenida es $Q = 0.640$.
     \item \textbf{Airports}: La modularidad obtenida es $Q = 0.108$.
@@ -142,7 +150,8 @@ Se entiende que es coherente que la modularidad del grafo de aeropuertos sea baj
 
 \section{Detección de comunidades} \label{sec: comunidades}
 
-En esta sección trabajaremos sobre el grafo de Zachary's Karate Club, un grafo muy conocido por ser un desafío para la detección de comunidades aunque es un grafo pequeño. El grafo surge del análisis de las interacciones sociales entre miembros de un club de karate, y como quedo divido  el club luego de su disolución.
+
+Esta sección analiza el grafo de Zachary's Karate Club, un grafo muy conocido por ser un desafío para la detección de comunidades, aunque es pequeño. El grafo surge del análisis de las interacciones sociales entre miembros de un club de karate y cómo quedó dividido el club luego de su disolución.
 
 \begin{figure}[htb]
     \centering
@@ -151,49 +160,51 @@ En esta sección trabajaremos sobre el grafo de Zachary's Karate Club, un grafo 
     \label{fig: karate_club}
 \end{figure}
 
-Nuestro objetivo cuando hacemos análisis de comunidades es encontrar la partición del grafo observada en figura~\ref{fig: karate_club} solo a partir de las relaciones entre los nodos. Los métodos se pueden dividir en dos categorías:
+
+El objetivo del análisis de comunidades es encontrar la partición del grafo observada en la figura~\ref{fig: karate_club} solo a partir de las relaciones entre los nodos. Los métodos se pueden dividir en dos categorías:
 \begin{itemize}
-    \item \textbf{Partición de grafo}: Busca dividir el grafo en dos comunidades de tamaño fijo, que es un parámetro modificable del algoritmo.
-    \item \textbf{Detección de comunidades}: Busca encontrar comunidades en el grafo sin pre-especificar el tamaño.
+    \item \textbf{Partición de grafo}: Divide el grafo en dos comunidades de tamaño fijo, que es un parámetro modificable del algoritmo.
+    \item \textbf{Detección de comunidades}: Encuentra comunidades en el grafo sin pre-especificar el tamaño.
 \end{itemize}
 
 \subsection{Spectral Partitioning}
 
-El \emph{Spectral Clustering} es un método de partición de grafos que se basa en la descomposición espectral de la matriz de adyacencia. El algoritmo busca hacer la partición del grafo que minimiza el costo del corte, donde el costo se define como la cantidad de aristas que se cortan. Matemáticamente, queremos hallar $\mathbf{s}\in{\pm 1}^{N_v}$ que minimice el costo del corte:
+El \emph{Spectral Clustering} es un método de partición de grafos que se basa en la descomposición espectral de la matriz de adyacencia. El algoritmo busca realizar la partición del grafo que minimiza el costo del corte, donde el costo se define como la cantidad de aristas que se cortan. Matemáticamente, se busca hallar $\mathbf{s}\in{\pm 1}^{N_v}$ que minimice el costo del corte:
 \begin{equation*}
     C = \frac{1}{2} \sum_{i,j} A_{ij} (1 - \mathbf{s}_i \mathbf{s}_j)
 \end{equation*}
-Relajando $\mathbf{s}\in{\pm 1}^{N_v}$ a $\mathbf{\hat{s}}\in{\mathbb{R}}^{N_v}$, podemos plantear el problema como:
+Al relajar $\mathbf{s}\in{\pm 1}^{N_v}$ a $\mathbf{\hat{s}}\in{\mathbb{R}}^{N_v}$, se puede plantear el problema como:
 \begin{equation*}
     \mathbf{\hat{s}} = \arg \min_{\mathbf{s}\in{\mathbb{R}}^{N_v}} \mathbf{s}^\top \mathbf{L} \mathbf{s}, \quad \text{sujeto a } \mathbf{1}^\top \mathbf{s} = N_1 - N_2 \text{ y } \mathbf{s}^\top \mathbf{s} = 1
 \end{equation*}
-Fiedler~\cite{Fiedler1973} caracterizó este problema y demostró que la solución es:
+Fiedler~\cite{Fiedler1973} caracteriza este problema y demuestra que la solución es:
 \begin{equation*}
     \mathbf{\hat{s}} = \mathbf{v}_2 + \frac{N_1 - N_2}{N_v} \mathbf{1}
 \end{equation*}
-donde $\mathbf{v}_2$ es el vector asociado al segundo valor propio más chico de la matriz Laplaciana $\mathbf{L}$, al que se le da el nombre de vector de \emph{Fiedler}. Para asignar las
-etiquetas de las comunidades, maximizamos la similitud $\mathbf{s}^\top\mathbf{\hat{s}}$, lo que resulta en
+Donde $\mathbf{v}_2$ es el vector asociado al segundo valor propio más chico de la matriz Laplaciana $\mathbf{L}$, al que se le da el nombre de vector de \emph{Fiedler}. Para asignar las
+etiquetas de las comunidades, se maximiza la similitud $\mathbf{s}^\top\mathbf{\hat{s}}$, lo que resulta en
 \begin{equation}
     \label{eq: fiedler_asignation}
-    s_i = f(\mathbf{v}_2) = \left\lbrace 
+    s_i = f(\mathbf{v}_2) = \left\lbrace
     \begin{array}{c l}
-         1, & \text{si } [\mathbf{v}_2]_i \text{ esta entre las $N_1$ componentes más grandes de $\mathbf{v}_2$} \\
+        1,  & \text{si } [\mathbf{v}_2]_i \text{ esta entre las $N_1$ componentes más grandes de $\mathbf{v}_2$} \\
         -1, & \text{en otro caso}
     \end{array}\right.
 \end{equation}
-El pseudocódigo de \emph{Spectral Partitioning} se describe en el algoritmo~\ref{alg: spectral_partitioning}.
+El pseudocódigo de \emph{Spectral Partitioning} se presenta en el algoritmo~\ref{alg: spectral_partitioning}.
 \begin{algorithm}
     \caption{Spectral Partitioning}
     \label{alg: spectral_partitioning}
     \begin{algorithmic}
-    \Require Grafo $G = (V, E)$ con $n$ nodos; $n_1$, $n_2$ enteros positivos tales que $n_1 + n_2 = n$
-    \State  $\mathbf{L} \leftarrow $ laplaciana de G
-    \State $\mathbf{v}_2 \leftarrow $ vector asociado al segundo valor propio más chico de $\mathbf{L}$ (vector de Fiedler)\\ 
-    \Return $\mathbf{s} = \mathbf{f}(\mathbf{v}_2)$ con $\mathbf{f}=(f_1,f_2,\ldots,f_N)$ y $f$ definida en \eqref{eq: fiedler_asignation}
+        \Require Grafo $G = (V, E)$ con $n$ nodos; $n_1$, $n_2$ enteros positivos tales que $n_1 + n_2 = n$
+        \State  $\mathbf{L} \leftarrow $ laplaciana de G
+        \State $\mathbf{v}_2 \leftarrow $ vector asociado al segundo valor propio más chico de $\mathbf{L}$ (vector de Fiedler)\\
+        \Return $\mathbf{s} = \mathbf{f}(\mathbf{v}_2)$ con $\mathbf{f}=(f_1,f_2,\ldots,f_N)$ y $f$ definida en \eqref{eq: fiedler_asignation}
     \end{algorithmic}
 \end{algorithm}
 
-En la figura \ref{fig: spectral_partitioning} se puede observar la partición del grafo de Zachary's Karate Club utilizando el algoritmo de Spectral Partitioning con $n_1 = n_2 = 17$. Se observa que el algoritmo divide perfectamente el grafo, descubriendo las comunidades correctas.
+
+La figura \ref{fig: spectral_partitioning} muestra la partición del grafo de Zachary's Karate Club utilizando el algoritmo de Spectral Partitioning con $n_1 = n_2 = 17$. Se observa que el algoritmo divide perfectamente el grafo, descubriendo las comunidades correctas.
 
 \begin{figure}[htb]
     \centering
@@ -206,7 +217,7 @@ En la figura \ref{fig: spectral_partitioning} se puede observar la partición de
 
 \subsubsection{Índice de Rand}
 
-Además de una evaluación visual, podemos usar una métrica como el índice de Rand, que evalúa la similitud de clusters de datos. Dado un conjunto de $n$ elementos $S$, y dos particiones $X = {X_1, X_2, \ldots, X_k}$ e $Y = {Y_1, Y_2, \ldots, Y_l}$, el índice de Rand ajustado se define como:
+Además de una evaluación visual, se puede usar una métrica como el índice de Rand, que evalúa la similitud de clusters de datos. Dado un conjunto de $n$ elementos $S$, y dos particiones $X = {X_1, X_2, \ldots, X_k}$ e $Y = {Y_1, Y_2, \ldots, Y_l}$, el índice de Rand ajustado se define como:
 \begin{equation*}
     R = \frac{a + b}{a + b + c + d} = \frac{a + b}{\binom{n}{2}}
 \end{equation*}
@@ -217,7 +228,8 @@ donde:
     \item $c$ es el número de pares de elementos que están en el mismo cluster en $X$ y en diferentes clusters en $Y$.
     \item $d$ es el número de pares de elementos que están en diferentes clusters en $X$ y en el mismo cluster en $Y$.
 \end{itemize}
-Idealmente, este indice debería ser 0 si la particiones son aleatorias, y 1 si son idénticas. El problema, es que con la formulación presentada anteriormente, en particiones aleatorias va a suceder que haya pares que esten en el mismo cluster en $X$ e $Y$, por lo que se introduce el índice de Rand corregido como una medida más robusta. 
+
+Idealmente, este índice debería ser 0 si las particiones son aleatorias, y 1 si son idénticas. El problema es que, con la formulación presentada anteriormente, en particiones aleatorias puede suceder que haya pares que estén en el mismo cluster en $X$ e $Y$, por lo que se introduce el índice de Rand corregido como una medida más robusta.
 
 El índice de Rand ajustado (ARI) se define como:
 \begin{equation}
@@ -225,7 +237,8 @@ El índice de Rand ajustado (ARI) se define como:
 \end{equation}
 donde $n_{ij}$ es el número de elementos que están en el cluster $i$ de la partición $X$ y en el cluster $j$ de la partición $Y$, $n_{i\cdot} = \sum_j n_{ij}$ es el número total de elementos en el cluster $i$ de $X$, y $n_{\cdot j} = \sum_i n_{ij}$ es el número total de elementos en el cluster $j$ de $Y$.
 
-Para el grafo de Zachary's Karate Club particionado con Spectral Partitioning, se obtiene un ARI de $1.00$. Si corremos el índice sobre una partición al azar, se obtiene un ARI de $0.00$.
+
+Para el grafo de Zachary's Karate Club particionado con Spectral Partitioning, se obtiene un ARI de $1.00$. Si se calcula el índice sobre una partición al azar, se obtiene un ARI de $0.00$.
 
 \subsection{Indice de Fowkles-Mallows}
 
@@ -233,15 +246,18 @@ El índice de Fowkles-Mallows (FM) es la media geómetrica de la precisión y el
 \begin{equation}
     FM = \sqrt{\frac{a}{a+c}\frac{b}{b+d}}
 \end{equation}
-usando las definiciones de $a$, $b$, $c$ y $d$ de la sección anterior. El valor mínimo del índice es 0 y el valor máximo es 1, que se obtiene cuando las particiones son idénticas. 
+usando las definiciones de $a$, $b$, $c$ y $d$ de la sección anterior. El valor mínimo del índice es 0 y el valor máximo es 1, que se obtiene cuando las particiones son idénticas.
 
-Para el grafo de Zachary's Karate Club particionado con Spectral Partitioning, también se obtiene un FM de $1.00$, pero a diferencia del ARI, si lo corremos sobre una partición al azar, se obtiene un FM de $0.696$. Por lo que concluímos que el spectral partitioning es un buen método para particionar el grafo de Zachary's Karate Club, teniendo la información a priori del tamaño de las comunidades.
+
+Para el grafo de Zachary's Karate Club particionado con Spectral Partitioning, también se obtiene un FM de $1.00$, pero a diferencia del ARI, si se calcula sobre una partición al azar, se obtiene un FM de $0.696$. Por lo tanto, se concluye que el spectral partitioning es un buen método para particionar el grafo de Zachary's Karate Club, teniendo la información a priori del tamaño de las comunidades.
 
 \subsection{Partición por espectro modularidad máxima}
 
-Observamos que el \emph{Spectral Partitioning} obtiene un resultado perfecto en el grafo, pero este método tiene la limitante que require el tamaño de las comunidades para hacer el clustering. Esto límita mucho la utilidad, dado que en general no se sabe el tamaño de las comunidades a priori.
 
-Existen métodos que no tienen esa limitante, cómo el método de \emph{Spectral Modularity Maximization}. En el método anterior, buscabamos la partición que minimizaba el costo del corte. En este método, vamos a buscar la partición que maximiza la modularidad~\eqref{eq: modularity}. Al igual que en el método anterior, definimos el vector $\mathbf{s}\in{\pm 1}^{N_v}$, donde un $1$ indica pertenecer a la comunidad 1 y un $-1$ indica pertenecer a la comunidad 2. Por lo que podemos escribir el problema como:
+El \emph{Spectral Partitioning} obtiene un resultado perfecto en el grafo, pero este método tiene la limitante de requerir el tamaño de las comunidades para hacer el clustering. Esto limita mucho la utilidad, dado que en general no se conoce el tamaño de las comunidades a priori.
+
+
+Existen métodos que no tienen esa limitante, como el método de \emph{Spectral Modularity Maximization}. En el método anterior, se buscaba la partición que minimizaba el costo del corte. En este método, se busca la partición que maximiza la modularidad~\eqref{eq: modularity}. Al igual que en el método anterior, se define el vector $\mathbf{s}\in{\pm 1}^{N_v}$, donde un $1$ indica pertenecer a la comunidad 1 y un $-1$ indica pertenecer a la comunidad 2. Por lo tanto, se puede escribir el problema como:
 \begin{equation*}
     Q(G, S) = \frac{1}{2N_e} \sum_{i,j\in V}\left[A_{ij} - \frac{k_i k_j}{2N_e}\right] \frac{1}{2}(s_is_j + 1) \\
 \end{equation*}
@@ -262,28 +278,30 @@ donde $\mathbf{v}_2$ es el vector asociado al segundo valor propio más grande d
 \begin{equation*}
     \mathbf{B}\mathbf{s} = \lambda \mathbf{s}
 \end{equation*}
-Por lo que $\mathbf{s}$ es un vector propio de $\mathbf{B}$ con valor propio $\lambda$. Cómo estamos buscando máximizar $\mathbf{s}^\top \mathbf{B} \mathbf{s} = \lambda$, nos interesa el vector propio dominante $\mathbf{u}_1$ de $\mathbf{B}$. Por último, para obtener la asignación de comunidades, máximizamos $\mathbf{s}^\top \mathbf{u}_1$, lo que resulta en:
+
+Por lo que $\mathbf{s}$ es un vector propio de $\mathbf{B}$ con valor propio $\lambda$. Como se busca maximizar $\mathbf{s}^\top \mathbf{B} \mathbf{s} = \lambda$, interesa el vector propio dominante $\mathbf{u}_1$ de $\mathbf{B}$. Por último, para obtener la asignación de comunidades, se maximiza $\mathbf{s}^\top \mathbf{u}_1$, lo que resulta en:
 \begin{equation*}
-    s_i = \text{signo}([\mathbf{u}_1]_i) = \left\lbrace 
+    s_i = \text{signo}([\mathbf{u}_1]_i) = \left\lbrace
     \begin{array}{c l}
-         1, & \text{si } [\mathbf{u}_1]_i > 0 \\
+        1,  & \text{si } [\mathbf{u}_1]_i > 0    \\
         -1, & \text{si } [\mathbf{u}_1]_i \leq 0
     \end{array}\right.
 \end{equation*}
-Podemos resumir el método como el procedimiento descrito en el algoritmo~\ref{alg: spectral_modularity_maximization}.
+El método se resume en el procedimiento descrito en el algoritmo~\ref{alg: spectral_modularity_maximization}.
 \begin{algorithm}
     \caption{Spectral Modularity Maximization}
     \label{alg: spectral_modularity_maximization}
     \begin{algorithmic}
-    \Require Grafo $G = (V, E)$ con $n$ nodos y $N_e$ aristas
-    \State $\mathbf{B} \leftarrow $ matriz de modularidad de G ($\mathbf{B}_{ij} = A_{ij} - \frac{k_i k_j}{2N_e}$)
-    \State $\mathbf{u}_1 \leftarrow $ vector propio dominante de $\mathbf{B}$ \\ 
-    \Return $\mathbf{s} = \text{signo}(\mathbf{u}_1)$
+        \Require Grafo $G = (V, E)$ con $n$ nodos y $N_e$ aristas
+        \State $\mathbf{B} \leftarrow $ matriz de modularidad de G ($\mathbf{B}_{ij} = A_{ij} - \frac{k_i k_j}{2N_e}$)
+        \State $\mathbf{u}_1 \leftarrow $ vector propio dominante de $\mathbf{B}$ \\
+        \Return $\mathbf{s} = \text{signo}(\mathbf{u}_1)$
     \end{algorithmic}
 \end{algorithm}
 
 
-Aplicando el método en el grafo de Zachary's Karate Club, obtenemos las comunidades mostradas en la figura \ref{fig: spectral_modularity_maximization}. A método anterior, en este método encontramos que el nodo 8 fue mal clasificado, siendo asignado a una comunidad incorrecta. Para esta partición, obtenemos un ARI de $0.882$ y un FM de $0.939$.
+
+Al aplicar el método en el grafo de Zachary's Karate Club, se obtienen las comunidades mostradas en la figura \ref{fig: spectral_modularity_maximization}. Al igual que en el método anterior, en este caso se encuentra que el nodo 8 fue mal clasificado, siendo asignado a una comunidad incorrecta. Para esta partición, se obtiene un ARI de $0.882$ y un FM de $0.939$.
 
 \begin{figure}[htb]
     \centering
@@ -293,10 +311,30 @@ Aplicando el método en el grafo de Zachary's Karate Club, obtenemos las comunid
     \label{fig: spectral_modularity_maximization}
 \end{figure}
 
+\subsection{Análisis de blogs políticos}
 
 
+Se analiza ahora el dataset de blogs políticos. Este dataset consta de 1490 nodos (blogs) y 19025 aristas (links). El grado promedio es 25.54, es dirigido y tiene tanto nodos aislados como self-loops. Para realizar un análisis de comunidades, primero se preprocesa el grafo convirtiéndolo en un grafo no dirigido, eliminando self-loops y quedándose con la componente conexa más grande. Luego de este procesado, se obtiene el grafo con las comunidades mostradas en la imagen de la izquierda en la figura~\ref{fig: blogs_politicos_spectral_modularity_maximization}.
 
+
+Se aplican los métodos descritos en la sección anterior. Para el método de \emph{Spectral Partitioning}, se asume que las comunidades son del mismo tamaño. A diferencia del caso anterior, el resultado en este grafo es un $ARI$ de $0.030$ y un $FM$ de $0.513$, que es casi aleatorio.
+
+
+Para el método de \emph{Spectral Modularity Maximization} se obtiene un mejor resultado, con un $ARI$ de $0.781$ y un $FM$ de $0.891$. En la figura~\ref{fig: blogs_politicos_spectral_modularity_maximization} se observan las comunidades detectadas.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\textwidth]{imagenes/blogs_politicos_spectral_modularity_maximization.png}
+    \caption{Partición del grafo de blogs políticos utilizando el algoritmo de Spectral Modularity Maximization. A la izquierda las comunidades reales y a la derecha las comunidades detectadas.}
+    \label{fig: blogs_politicos_spectral_modularity_maximization}
+\end{figure}
+
+
+Cualitativamente, se observa que, a diferencia del caso real donde hay blogs ``infiltrados'', la detección de comunidades con el spectral clustering realiza una separación más fuerte de las comunidades. Al observar la modularidad para cada separación, la modularidad de las comunidades reales es $-0.002$ mientras que la modularidad que resulta del clustering espectral es $0.424$. Es decir, el método maximiza la modularidad, pero las comunidades reales no tienen una alta modularidad.
+
+\FloatBarrier
 \section{Estimador de máxima verosimilitud para el exponente de la distribución de Pareto} \label{sec: pareto}
+
 
 Sea $X$ una variable aleatoria con distribución de Pareto, por lo tanto su función de densidad de probabilidad es:
 
@@ -304,13 +342,15 @@ $$p(x) = \left\lbrace \begin{array}{c c} C x^{-\alpha} & \text{ si } x\geq x_\te
 
 \subsection{Función de log-verosimilitud}
 
-La función de log-verosimilitud para una muestra $x_1, x_2, \ldots, x_n$ es la suma de los logaritmos de las funciones de densidad evaluadas en cada punto de la muestra. Para el ejercicio presentado en la sección \ref{sec: estructuras}, en que se tiene una Distribución de Pareto con $C = \frac{-\alpha+1}{k_{\text{min}}^{-\alpha+1}}$, se halla la función de log-verosimilitud:
+
+La función de log-verosimilitud para una muestra $x_1, x_2, \ldots, x_n$ es la suma de los logaritmos de las funciones de densidad evaluadas en cada punto de la muestra. Para el ejercicio presentado en la sección \ref{sec: estructuras}, en que se tiene una Distribución de Pareto con $C = \frac{-\alpha+1}{k_{\text{min}}^{-\alpha+1}}$, se obtiene la función de log-verosimilitud:
 
 \begin{align}
     \mathcal{L}_n(\alpha) & = \log \left[\prod_{i=1}^{n} \left( \frac{1-\alpha}{k_{\text{min}}^{1-\alpha}} k_i^{-\alpha} \right) \right] \nonumber               \\
                           & = \sum_{i=1}^{n} \left[ \log(1-\alpha) - log\log(k_{\text{min}}) - \log \left(\frac{k_i}{k_{min}} \right)^{\alpha} \right] \nonumber \\
                           & = n \log(1-\alpha) - n\log(k_{\text{min}}) - \alpha \sum_{i=1}^{n} \log\left(\frac{k_i}{k_{min}} \right)
 \end{align}
+
 
 donde en la primera igualdad se toma el logaritmo, en la segunda se utiliza la propiedad de que el logaritmo del producto es la suma de los logaritmos, y en la tercera se resuelven las sumatorias que no dependen de $i$ y se utiliza la propiedad del logaritmo de la potencia.
 
