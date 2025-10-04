@@ -1,0 +1,6 @@
+{
+  "editor.formatOnSave": false,
+  "latex-workshop.view.pdf.invertMode.enabled": "auto",
+  "latex-workshop.view.pdf.invert": 0.9,
+  "latex-workshop.synctex.afterBuild.enabled": true
+}
