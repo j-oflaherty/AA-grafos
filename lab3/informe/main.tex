@@ -202,6 +202,25 @@ En los otros dos casos, tenemos matrices $Q$ con valores propios positivos. Pode
 densas que en la figura~\ref{fig:sbm_eigenvalues_reference}, lo cual es esperable dada la matriz $Q$ asociada. Si observamos los valores propios, vemos que son 
 mayores para $Q_3$, de lo que podemos concluir que hay una correlación entre la densidad de la comunidad y el valor propio asociado.
 
+\begin{figure}[tb]
+    \centering
+    \begin{subfigure}{0.7\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/sbm/sbm_4n.pdf}
+        \caption{Realización del grafo SBM.}
+        \label{fig:sbm_4x4_eigenvalues}
+    \end{subfigure}
+    \begin{subfigure}{0.6\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/sbm/sbm_4n_adj_matrix.pdf}
+        \caption{Matriz de adyacencia del grafo SBM.}
+        \label{fig:sbm_4x4_adj_matrix}
+    \end{subfigure}
+    \caption{SBM con valores propios \eqref{eq:sbm_4x4_eigenvalues}, asociado a la matriz $Q$ \eqref{eq:sbm_4x4_matrix}.}
+    \label{fig:sbm_4x4_generation}
+\end{figure}
+
+
 En resumen, los valores propios de la matriz $Q$ son indicadores de la cantidad y densidad de las comunidades del grafo generado, donde la cantidad de valores
 propios positivos es igual a la cantidad de comunidades. Apliquemos este resultado a una matriz $Q$ con $n=[45, 5, 45, 5]$:
 \begin{equation}
@@ -224,26 +243,6 @@ La figura~\ref{fig:sbm_4x4_eigenvalues} muestra el resultado de la generación, 
 tiene dos comunidades. En la figura~\ref{fig:sbm_4x4_adj_matrix} podemos ver la matriz de adyacencia del grafo resultante, donde se entiende
 la intuición que planteamos inicialmente: la conexión intracomunidad (valor de la diagonal) tiene que ser suficientemente mayor que la conexión intercomunidad (valor fuera de la diagonal) para que se forme una comunidad.
 
-\begin{figure}[htb]
-    \centering
-    \begin{subfigure}{0.8\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{images/sbm/sbm_4n.pdf}
-        \caption{Realización del grafo SBM.}
-        \label{fig:sbm_4x4_eigenvalues}
-    \end{subfigure}
-    \par\bigskip
-    \begin{subfigure}{0.6\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{images/sbm/sbm_4n_adj_matrix.pdf}
-        \caption{Matriz de adyacencia del grafo SBM.}
-        \label{fig:sbm_4x4_adj_matrix}
-    \end{subfigure}
-    \caption{SBM con valores propios \eqref{eq:sbm_4x4_eigenvalues}, asociado a la matriz $Q$ \eqref{eq:sbm_4x4_matrix}.}
-    \label{fig:sbm_4x4_generation}
-\end{figure}
-
-\FloatBarrier
 \section{Grafos Random Dot Product Graph (RDPG)}
 \label{sec:rdpg}
 
