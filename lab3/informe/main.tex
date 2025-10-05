@@ -44,8 +44,17 @@
 
 \section{Introducción}
 
+Este informe presenta el Laboratorio 3 para la materia Aprendizaje Automático para Datos en Grafos. El objetivo principal es profundizar en el modelado estadístico de datos relacionales representados mediante grafos, enfocándose específicamente en modelos generativos de la familia de variables latentes. A lo largo del laboratorio se exploran los modelos clásicos de grafos aleatorios (Erdös-Rényi), los Stochastic Block Models (SBM) y los Random Dot Product Graphs (RDPG), analizando tanto su construcción teórica como su capacidad para representar datos de grafos reales. 
+
+En las secciones \ref{sec:grafos_er} y \ref{sec:grafos_sbm}, se analizan los modelos clásicos de grafos aleatorios: Erdös-Rényi (ER) y Stochastic Block Model (SBM). Se estudian empíricamente propiedades fundamentales como los umbrales de conectividad en grafos ER y la relación entre los valores propios de la matriz de probabilidades y la estructura de comunidades en grafos SBM. En la segunda parte, desarrollada en la sección \ref{sec:rdpg}, se introduce el modelo Random Dot Product Graph (RDPG) como una generalización de los modelos anteriores, explorando su capacidad para representar grafos mediante posiciones latentes en espacios de dimensión reducida.
+
+La sección \ref{sec:ejemplo_real} aplica los conceptos teóricos estudiados a un dataset real de partidos de fútbol entre selecciones nacionales, demostrando cómo los métodos de embebido espectral pueden revelar estructuras geográficas y organizacionales subyacentes en redes complejas. A través de este análisis, se explora cómo eventos específicos (mundiales, copas continentales) afectan la estructura de las comunidades detectadas.
+
+El código implementado puede consultarse en el repositorio de GitHub \url{https://github.com/j-oflaherty/AA-grafos/blob/main/lab3/Lab3_AAG2025.ipynb}.
+
 
 \section{Grafos Erdös-Rényi}
+\label{sec:grafos_er}
 
 Los grafos \emph{Erdös-Rényi}\cite{erdos1959random} (ER) son grafos aleatorios con un algoritmo de generación muy simple, donde
 a cada par de nodos se le asigna una arista con una probabilidad $p$. Pese a la simplicidad del algoritmo,
@@ -54,13 +63,13 @@ los grafos ER tienen propiedades interesantes. Una de estas propiedades es que s
     \label{eq:er_threshold_1}
     p > \frac{(1 + \epsilon)ln(n)}{n} \quad\quad \epsilon > 0
 \end{equation}
-entonces la probabilidad de que el grafo sea conexo es practicamente 1. Analogamente,
+entonces la probabilidad de que el grafo sea conexo es prácticamente 1. Análogamente,
 si 
 \begin{equation}
     \label{eq:er_threshold_2}
     p < \frac{(1 - \epsilon)ln(n)}{n} \quad\quad \epsilon > 0
 \end{equation}
-entonces la probabilidad de que el grafo sea conexo es practicamente 0.
+entonces la probabilidad de que el grafo sea conexo es prácticamente 0.
 
 \begin{figure}[htb]
     \centering
@@ -127,18 +136,19 @@ En la figura~\ref{fig:er_threshold} hacemos una validación empírica de esta pr
 con el algoritmo de ER con 200 nodos, variando la probabilidad $p$ alrededor del umbral de conectividad $p \approx \ln(n)/n \approx 0.02649$. Para cada valor de $p$ se generan tres grafos distintos.
 
 La primera observación es que para valores de $p$ menores que el umbral de conectividad, el grafo es siempre disconexo, mientras que para valores de $p$ mayores que el umbral de conectividad, el grafo es siempre conexo. Cabe recalcar que las condiciones de las cotas~\eqref{eq:er_threshold_1} y~\eqref{eq:er_threshold_2} son probabilísticas, por lo que puede existir una realización del grafo que no cumpla con la condición, solo
-que esto es altamente improbable. En el caso que $p$ es igual al umbral de conectividad, no podemos afirmar ningún comportamiento, y se ve reflejado en que algunos de los grafos son conexos y otros no. 
+que esto es altamente improbable. El caso en el que $p$ es igual al umbral de conectividad, no podemos afirmar ningún comportamiento, y se ve reflejado en que algunos de los grafos son conexos y otros no. 
 
 Otra característica a destacar, es que cuando el grafo ER no es conexo, las componentes que no pertenecen
-a la componente conexa más grande, son nodos aislados. Esto esta relacionado a la tendencia de los grafos ER
+a la componente conexa más grande, son nodos aislados. Esto está relacionado a la tendencia de los grafos ER
 a tener una componente gigante cuando $np>1$, condición que cumplen las 3 probabilidades elegidas.
 
 \section{Grafos SBM}
+\label{sec:grafos_sbm}
 
-Los grafos \emph{Stochastic Block Model} (SBM) son una extensión natural de los grafos ER, que busca solventar algunas de la limitaciones de los mismos. En particular,
+Los grafos \emph{Stochastic Block Model} (SBM) son una extensión natural de los grafos ER, que busca solventar algunas de las limitaciones de los mismos. En particular,
 los grafos ER no son capaces de generar comunidades, que es una característica importante en muchos grafos reales. Los grafos SBM solucionan este problema trabajando
 con una matriz de probabilidad $Q$ simétrica, donde $Q_{ij}$ es la probabilidad de que un nodo del grupo $i$ se conecte con un nodo del grupo $j$. La cantidad de nodos 
-en cada grupos son parámetros del modelo $n_i$.
+en cada grupo son parámetros del modelo $n_i$.
 
 \begin{figure}[htb]
     \centering
@@ -166,7 +176,7 @@ en cada grupos son parámetros del modelo $n_i$.
     \label{fig:sbm_eigenvalues}
 \end{figure}
 
-Analizemos el impacto de los vectores propios de la matriz $Q$ en el grafo generado. Por simplicidad, trabajaremos con dos comunidades de igual tamaño $n_1=n_2=50$.
+Analicemos el impacto de los vectores propios de la matriz $Q$ en el grafo generado. Por simplicidad, trabajaremos con dos comunidades de igual tamaño $n_1=n_2=50$.
 En la figura~\ref{fig:sbm_eigenvalues} se muestran tres realizaciones de un grafo SBM, con las matrices:
 \begin{equation}
     \label{eq:sbm_matrices}
@@ -184,11 +194,11 @@ En la figura~\ref{fig:sbm_eigenvalues} se muestran tres realizaciones de un graf
     \end{matrix} \right)
 \end{equation}
 
-Intuitivamente, los valores de la diagonal indican que tan densamente conectada esta una comunidad, mientras que los valores fuera indican que tanto se conectan 
+Intuitivamente, los valores de la diagonal indican qué tan densamente conectada está una comunidad, mientras que los valores fuera indican qué tanto se conectan
 entre comunidades. Viendo la figura~\ref{fig:sbm_eigenvalues_negative} vemos el resultado de la matriz $Q_2$, donde el valor de intraconexión de una comunidad es 
 similar al valor de interconexión entre comunidades. Esto deriva en un valor propio negativo, y en un grafo con una sola comunidad.
 
-En los otros dos casos, tenemos matrices $Q$ con valores propios positivos. Podemos notar como las comunidades de la figura~\ref{fig:sbm_eigenvalues_big} son muchas 
+En los otros dos casos, tenemos matrices $Q$ con valores propios positivos. Podemos notar cómo las comunidades de la figura~\ref{fig:sbm_eigenvalues_big} son mucho más 
 densas que en la figura~\ref{fig:sbm_eigenvalues_reference}, lo cual es esperable dada la matriz $Q$ asociada. Si observamos los valores propios, vemos que son 
 mayores para $Q_3$, de lo que podemos concluir que hay una correlación entre la densidad de la comunidad y el valor propio asociado.
 
@@ -212,7 +222,7 @@ fuera de la diagonal. Calculando los valores propios de la matriz $Q$, obtenemos
 Podemos ver que hay dos valores propios positivos, y dos negativos. Por lo tanto, deberíamos obtener un grafo con dos comunidades. 
 La figura~\ref{fig:sbm_4x4_eigenvalues} muestra el resultado de la generación, donde efectivamente observamos que el grafo resultante
 tiene dos comunidades. En la figura~\ref{fig:sbm_4x4_adj_matrix} podemos ver la matriz de adyacencia del grafo resultante, donde se entiende
-la intuición que planteamos incialmente: la conexión intracomunidad (valor de la diagonal) tiene que ser suficientemente mayor que la conexión intercomunidad (valor fuera de la diagonal) para que se forme una comunidad.
+la intuición que planteamos inicialmente: la conexión intracomunidad (valor de la diagonal) tiene que ser suficientemente mayor que la conexión intercomunidad (valor fuera de la diagonal) para que se forme una comunidad.
 
 \begin{figure}[htb]
     \centering
@@ -239,11 +249,11 @@ la intuición que planteamos incialmente: la conexión intracomunidad (valor de 
 
 Los Random Dot Product Graphs (RDPG) representan una generalización tanto de los grafos Erdös-Rényi como de los Stochastic Block Models, introduciendo el concepto de \emph{posiciones latentes}. En este modelo, cada nodo $i = 1, \ldots, n$ se asocia con un vector $\mathbf{x}_i \in \mathbb{R}^d$ en un espacio latente de dimensión $d$, donde la probabilidad de conexión entre dos nodos $i$ y $j$ está determinada por el producto interno de sus respectivas posiciones latentes: $P(A_{ij} = 1) = \langle \mathbf{x}_i, \mathbf{x}_j \rangle$.
 
-\subsection{Relación con modelos previos}
+\subsection{Relación con ER y SBM}
 
 Para verificar la generalidad del modelo RDPG, analizamos cómo los modelos ER y SBM pueden ser expresados como casos particulares. En el caso de un grafo Erdös-Rényi con probabilidad de conexión $p$, la matriz de probabilidades es $\mathbf{P} = p \mathbf{1}_{n \times n}$. Para representar esto en el modelo RDPG, consideramos $d=1$ y tomamos $\mathbf{x}_i = \sqrt{p}$ para todos los nodos, de forma que $\langle \mathbf{x}_i, \mathbf{x}_j \rangle = p$ para cualquier par de nodos.
 
-Para el caso SBM, trabajamos con la matriz de probabilidades entre comunidades $\mathbf{Q} \in \mathbb{R}^{C \times C}$ y una matriz $\mathbf{Z} \in \mathbb{R}^{N \times C}$, donde $Z_{ij} = 1$ si el nodo $i$ pertenece a la comunidad $j$, y $Z_{ij} = 0$ en caso contrario. La matriz de probabilidades entre nodos se expresa como $\mathbf{P} = \mathbf{Z}\mathbf{Q}\mathbf{Z}^T$. Para representar esto como RDPG, necesitamos encontrar una descomposición $\mathbf{X}\mathbf{X}^T = \mathbf{Z}\mathbf{Q}\mathbf{Z}^T$.
+Para el caso SBM, la matriz de probabilidades entre nodos se puede escribir como $\mathbf{P} = \mathbf{Z}\mathbf{Q}\mathbf{Z}^T$, donde $\mathbf{Q}$ es la matriz de probabilidades entre comunidades y $\mathbf{Z}$ indica la pertenencia de cada nodo a una comunidad. Esta estructura permite, bajo ciertas condiciones, expresar el SBM como un RDPG mediante una descomposición $\mathbf{P} = \mathbf{X}\mathbf{X}^T$.
 
 Sin embargo, no todos los grafos SBM pueden ser representados exactamente por un RDPG. Esto se debe a que la matriz $\mathbf{P} = \mathbf{X}\mathbf{X}^T$ debe ser semidefinida positiva por construcción (al ser una matriz de Gram), lo que impone restricciones sobre los valores propios de $\mathbf{Q}$. Cuando $\mathbf{Q}$ tiene valores propios negativos no es posible la descomposición exacta bajo el modelo RDPG estándar.
 
@@ -267,7 +277,7 @@ Para la implementación utilizamos la biblioteca \textit{graspologic}, específi
 \end{figure}
 
 
-La selección de la dimensión $d$ se realiza mediante el análisis de los valores propios de la matriz de adyacencia. Al graficar los valores propios ordenados por magnitud, buscamos un ``codo'' en la curva que indique una separación clara entre los valores propios señal y ruido. La biblioteca \textit{graspologic} automatiza este proceso mediante el parámetro \verb|n_elbows|. Se muestra en la figura \ref{fig:valores propios} como el codo se hace presente en $d=1$ tal como se determinó en el código igualando \verb|n_elbows| a $1$. 
+La selección de la dimensión $d$ se realiza mediante el análisis de los valores propios de la matriz de adyacencia. Al graficar los valores propios ordenados por magnitud, buscamos un ``codo'' en la curva que indique una separación clara entre los valores propios señal y ruido. La biblioteca \textit{graspologic} automatiza este proceso mediante el parámetro \verb|n_elbows|. Se muestra en la figura \ref{fig:valores propios} cómo el codo se hace presente en $d=1$ tal como se determinó en el código igualando \verb|n_elbows| a $1$. 
 
 \begin{figure}[htb]
     \centering
@@ -304,6 +314,7 @@ Para la detección de comunidades a partir de los embeddings latentes, empleamos
 
 
 \section{Ejemplo real}
+\label{sec:ejemplo_real}
 
 Aplicaremos lo discutido en la Sección~\ref{sec:rdpg} a un grafo real. Contamos con datos históricos de partidos de fútbol entre equipos nacionales, desde 1872
 hasta 2016. Con estos datos, podemos construirnos un grafo no dirigido, donde los nodos son los equipos (países) y las aristas denotan si jugaron una partido entre ellos.
@@ -313,13 +324,13 @@ Analizaremos los datos para tres años:
 \begin{itemize}
     \item 1950: año de mundial pero con pocos datos, por lo que podemos observar las comunidades formadas con detalle.
     \item 2004: año donde se disputaron: Copa América, Eurocopa, Copa Asíatica, Copa Africana de Naciones, 
-    y la OFC nations cup (oceanía). Es decir, la copa de todas las confederaciones excepto CONCACAF.
+    y la OFC Nations Cup (Oceanía). Es decir, las copas de todas las confederaciones excepto CONCACAF.
     \item 2010: año de mundial, por lo que deberíamos tener mucha actividad entre algunos países de cada confederación.
 \end{itemize}
 
 \subsection{Año 1950}
 
-En el 1950 se jugo el mundial de Brazil, donde Uruguay se proclamo campeón. El dataset no contiene muchos datos de ese año, contando solo con 141 partidos entre 67 equipos registrados, por lo que
+En el 1950 se jugó el mundial de Brasil, donde Uruguay se proclamó campeón. El dataset no contiene muchos datos de ese año, contando solo con 141 partidos entre 67 equipos registrados, por lo que
 nos permite graficar los clusters para analizar con más detalle.
 
 \begin{figure}[htb]
@@ -343,7 +354,7 @@ nos permite graficar los clusters para analizar con más detalle.
     \label{fig:clusters_1950}
 \end{figure}
 
-En la figura~\ref{fig:clusters_1950} se observan los embedding latentes obtenidos para cada país, para el caso con y sin pesos, así como las comunidades asignadas por el algoritmo de clustering. La principal diferencia que vemos, es que cuando incluímos los pesos desaparece
+En la figura~\ref{fig:clusters_1950} se observan los embeddings latentes obtenidos para cada país, para el caso con y sin pesos, así como las comunidades asignadas por el algoritmo de clustering. La principal diferencia que vemos, es que cuando incluimos los pesos desaparece
 una comunidad.
 
 \begin{figure}[htb]
@@ -365,21 +376,21 @@ una comunidad.
 \end{figure}
 
 En la figura~\ref{fig:mapa_1950} observamos el resultado de la figura~\ref{fig:clusters_1950} proyectado en el mapa, lo que nos da una noción geográfica de las comunidades. Recordando que 1950 fue un año de mundial,
-cuando no incluímos pesos vemos que las confederaciones no se distinguen claramente, viendo que 
-américa del sur queda dividida en varias comunidades.
+cuando no incluimos pesos vemos que las confederaciones no se distinguen claramente, viendo que 
+América del Sur queda dividida en varias comunidades.
 
 Cuando agregamos los pesos, notamos más coherencia en las comunidades obtenidas. Primero, vemos que
-los países de américa pertenecen todos a la misma comunidad salvo Argentina
-\footnote{Argentina solo disputo un partido en 1950 contra Paraguay}, que en ese año no participo
-del mundial (el resto de equipos américanos si lo hicieron). En europa, vemos tres comunidades, que se 
-corresponden con europa del oeste (reino unido, francia, bélgica,...), europa central (alemania, suzia,
-checoslovaquia, polonia, etc...) y europa del este (yugoslavia, albania, etc...).
+los países de América pertenecen todos a la misma comunidad salvo Argentina
+\footnote{Argentina solo disputó un partido en 1950 contra Paraguay}, que en ese año no participó
+del mundial (el resto de equipos sudamericanos sí lo hicieron). En Europa, vemos tres comunidades, que se
+corresponden con Europa del Oeste (Reino Unido, Francia, Bélgica, etc.), Europa Central (Alemania, Suiza,
+Checoslovaquia, Polonia, etc.) y Europa del Este (Yugoslavia, Albania, etc.).
 
 \subsection{Año 2004}
 
 En el año 2004 tenemos muchos más datos, con 1089 partidos entre 189 países registrados. Como mencionamos
 anteriormente, en este año sucedieron todas las copas de las confederaciones excepto la de CONCACAF, por lo 
-que las relaciones intra confederación deberían ser muy fuertes cuando inlcuímos pesos.
+que las relaciones intraconfederación deberían ser muy fuertes cuando incluimos pesos.
 
 \begin{figure}[htb]
     \centering
@@ -399,21 +410,21 @@ que las relaciones intra confederación deberían ser muy fuertes cuando inlcuí
     \label{fig:mapa_2004}
 \end{figure}
 
-La primer observación es que en la figura~\ref{fig:2004_con_pesos}, el incluir pesos hace que la 
+La primera observación es que en la figura~\ref{fig:2004_con_pesos}, el incluir pesos hace que la 
 división de las comunidades sea muy clara y acertada. En el caso de América, vemos la inclusión de
-méxico y los países de américa central en la misma comunidad que los países del sur, pero es consistente
-con la partipación de algunos de ellos en la copa américa como invitados.
+México y los países de América Central en la misma comunidad que los países del Sur, pero es consistente
+con la participación de algunos de ellos en la Copa América como invitados.
 
 Un detalle relevante, es que logra detectar a los países que juegan en una confederación distinta a la 
-de su continente, cómo por ejemplo Armenia o Kazajstán.
+de su continente, como por ejemplo Armenia o Kazajistán.
 
-Cuando no incluímos los pesos, las grandes comunidades se mantienen (Europa, África, Asia y América del sur),
-pero notamos algunos nodos como Australia, o el caribe y oceanía perteneciendo a la misma comunidad.
+Cuando no incluimos los pesos, las grandes comunidades se mantienen (Europa, África, Asia y América del Sur),
+pero notamos algunos nodos como Australia, o el Caribe y Oceanía perteneciendo a la misma comunidad.
 
 \subsection{Año 2010}
 
-En el año 2010 se disputó el mundial de sudáfrica, por lo que deberíamos tener mucha actividad inter
-confedereación, dado que además del mundial se suelen jugar muchos amistosos entre equipos no clasificados.
+En el año 2010 se disputó el mundial de Sudáfrica, por lo que deberíamos tener mucha actividad inter
+confederación, dado que además del mundial se suelen jugar muchos amistosos entre equipos no clasificados.
 Contamos con un total de 865 partidos disputados entre 198 países.
 
 \begin{figure}[htb]
@@ -434,17 +445,15 @@ Contamos con un total de 865 partidos disputados entre 198 países.
     \label{fig:mapa_2010}
 \end{figure}
 
-A diferencia del año 2004, en la figura~\ref{fig:mapa_2010} vemos que en el 2010 el resultado del clustering no es tan claro.Tanto cuando se incluyen pesos como cuando no, Africa, Europa y Asia tiene a sus integrantes
-repartidos entre una o más comunidades. En el caso de africa, notamos que los países ``mal clasificados''
+A diferencia del año 2004, en la figura~\ref{fig:mapa_2010} vemos que en el 2010 el resultado del clustering no es tan claro. Tanto cuando se incluyen pesos como cuando no, África, Europa y Asia tienen a sus integrantes
+repartidos entre una o más comunidades. En el caso de África, notamos que los países ``mal clasificados''
 coinciden o son vecinos de los países que participaron del mundial (ej: Sudáfrica, Ghana, Costa de Marfil)
 
 Por otro lado, cercano a un mundial se celebran los partidos de despedida, que suelen ser amistosos entre
-un país clasificado y uno que no clasifico, generalmente de confederaciones distintas. Esto genera 
+un país clasificado y uno que no clasificó, generalmente de confederaciones distintas. Esto genera 
 conexiones incluso más aleatorias, lo que deja un grafo bastante ruidoso si el objetivo es la detección
 de comunidades.
 
-
-\section{Conclusiones}
 
 \FloatBarrier
 \bibliography{refs.bib}
