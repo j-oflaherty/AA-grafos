@@ -44,6 +44,7 @@
 
 \section{Introducción}
 
+
 \section{Grafos Erdös-Rényi}
 
 Los grafos \emph{Erdös-Rényi}\cite{erdos1959random} (ER) son grafos aleatorios con un algoritmo de generación muy simple, donde
@@ -232,13 +233,74 @@ la intuición que planteamos incialmente: la conexión intracomunidad (valor de 
     \label{fig:sbm_4x4_generation}
 \end{figure}
 
-\section{Grafos RDPG}
+\section{Grafos Random Dot Product Graph (RDPG)}
 
-\subsection{definicion}
+Los Random Dot Product Graphs (RDPG) representan una generalización tanto de los grafos Erdös-Rényi como de los Stochastic Block Models, introduciendo el concepto de \emph{posiciones latentes}. En este modelo, cada nodo $i = 1, \ldots, n$ se asocia con un vector $\mathbf{x}_i \in \mathbb{R}^d$ en un espacio latente de dimensión $d$, donde la probabilidad de conexión entre dos nodos $i$ y $j$ está determinada por el producto interno de sus respectivas posiciones latentes: $P(A_{ij} = 1) = \langle \mathbf{x}_i, \mathbf{x}_j \rangle$.
 
-\subsection{inferencia}
+\subsection{Relación con modelos previos}
 
-\subsection{Clustering }
+Para verificar la generalidad del modelo RDPG, analizamos cómo los modelos ER y SBM pueden ser expresados como casos particulares. En el caso de un grafo Erdös-Rényi con probabilidad de conexión $p$, la matriz de probabilidades es $\mathbf{P} = p \mathbf{1}_{n \times n}$. Para representar esto en el modelo RDPG, consideramos $d=1$ y tomamos $\mathbf{x}_i = \sqrt{p}$ para todos los nodos, de forma que $\langle \mathbf{x}_i, \mathbf{x}_j \rangle = p$ para cualquier par de nodos.
+
+Para el caso SBM, trabajamos con la matriz de probabilidades entre comunidades $\mathbf{Q} \in \mathbb{R}^{C \times C}$ y una matriz $\mathbf{Z} \in \mathbb{R}^{N \times C}$, donde $Z_{ij} = 1$ si el nodo $i$ pertenece a la comunidad $j$, y $Z_{ij} = 0$ en caso contrario. La matriz de probabilidades entre nodos se expresa como $\mathbf{P} = \mathbf{Z}\mathbf{Q}\mathbf{Z}^T$. Para representar esto como RDPG, necesitamos encontrar una descomposición $\mathbf{X}\mathbf{X}^T = \mathbf{Z}\mathbf{Q}\mathbf{Z}^T$.
+
+Sin embargo, no todos los grafos SBM pueden ser representados exactamente por un RDPG. Esto se debe a que la matriz $\mathbf{P} = \mathbf{X}\mathbf{X}^T$ debe ser semidefinida positiva por construcción (al ser una matriz de Gram), lo que impone restricciones sobre los valores propios de $\mathbf{Q}$. Cuando $\mathbf{Q}$ tiene valores propios negativos no es posible la descomposición exacta bajo el modelo RDPG estándar.
+
+\subsection{Inferencia de posiciones latentes}
+
+Dado un grafo $G$ con matriz de adyacencia $\mathbf{A}$, el objetivo es estimar la matriz de posiciones latentes $\mathbf{X}$. Dado que $\mathbb{E}[\mathbf{A}] = \mathbf{P} = \mathbf{X}\mathbf{X}^T$, buscamos la mejor aproximación de rango $d$ de la matriz $\mathbf{A}$. La estimación se obtiene resolviendo:
+\begin{equation}
+    \hat{\mathbf{X}} = \underset{\mathbf{X}: \text{rango}(\mathbf{X}\mathbf{X}^T) = d}{\mathrm{argmin}} ||\mathbf{A} - \mathbf{X}\mathbf{X}^T||^2_F
+\end{equation}
+
+La solución utiliza la descomposición espectral de $\mathbf{A} = \mathbf{Q}\boldsymbol{\Lambda}\mathbf{Q}^T$. Ordenando los valores propios por magnitud y seleccionando los $d$ mayores, obtenemos $\hat{\mathbf{X}} = \hat{\mathbf{Q}}\sqrt{\hat{\boldsymbol{\Lambda}}}$, donde $\hat{\mathbf{Q}}$ y $\hat{\boldsymbol{\Lambda}}$ corresponden al ``recorte'' apropiado.
+
+Para la implementación utilizamos la biblioteca \textit{graspologic}, específicamente la clase \newline
+\verb|AdjacencySpectralEmbed|. En los experimentos con grafos ER, realizamos la gráfica de la figura~\ref{fig:precision}, que muestra la varianza de las estimaciones $\mathbf{x}_i$ y de $\hat{\mathbf{X}}\hat{\mathbf{X}}^T$ para distintos valores de $n$ y $p$. En ambos casos, al aumentar $n$, la varianza disminuye, reflejando una mayor estabilidad en las estimaciones. Sin embargo, al aumentar $p$, la varianza de $\mathbf{x}_i$ disminuye, mientras que la varianza de $\hat{\mathbf{X}}\hat{\mathbf{X}}^T$ se mantiene prácticamente constante. Esto sugiere que el producto $\hat{\mathbf{X}}\hat{\mathbf{X}}^T$ es más robusto frente a variaciones en $p$, probablemente debido al efecto de promediado en el producto matricial.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.7\linewidth]{images/precision.png}
+    \caption{Varianza de las estimaciones $\mathbf{x}_i$ y $\hat{\mathbf{X}}\hat{\mathbf{X}}^T$ para distintos valores de $n$ y $p$ en grafos ER.}
+    \label{fig:precision}
+\end{figure}
+
+
+La selección de la dimensión $d$ se realiza mediante el análisis de los valores propios de la matriz de adyacencia. Al graficar los valores propios ordenados por magnitud, buscamos un ``codo'' en la curva que indique una separación clara entre los valores propios señal y ruido. La biblioteca \textit{graspologic} automatiza este proceso mediante el parámetro \verb|n_elbows|. Se muestra en la figura \ref{fig:valores propios} como el codo se hace presente en $d=1$ tal como se determinó en el código igualando \verb|n_elbows| a $1$. 
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.7\linewidth]{images/valores_propios.png}
+    \caption{Valor absoluto de los valores propios de $\mathbf{A}$ ordenados por magnitud.}
+    \label{fig:valores propios}
+\end{figure}
+
+\subsection{Análisis de embeddings en grafos SBM}
+
+Para grafos SBM, analizamos la interpretación geométrica de las posiciones latentes estimadas. En experimentos con grafos de dos comunidades, representamos los embeddings en coordenadas polares, donde observamos que el ángulo entre vectores $\mathbf{x}_i$ y $\mathbf{x}_j$ está relacionado con la probabilidad de conexión: ángulos pequeños corresponden a alta probabilidad (nodos de la misma comunidad), mientras que ángulos grandes indican baja probabilidad de conexión (nodos de comunidades diferentes).
+
+La magnitud $||\mathbf{x}_i||$ está relacionada con la probabilidad de conexión intra-comunidad, aproximadamente $\sqrt{p_c}$ donde $p_c$ es la probabilidad de conexión dentro de la comunidad correspondiente. Esta interpretación geométrica facilita la comprensión de cómo el modelo RDPG captura la estructura de comunidades. Se observa en la figura \ref{fig:coordenadas polares} la distinción clara de dos comunidades, donde una se localiza sobre el eje horizontal y otra sobre el eje vertical. Si medimos los ángulos entre las componentes de una misma comunidad, obtenemos valores pequeños que tienden a cero, mientras que entre comunidades los ángulos son prácticamente ángulos rectos.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.7\linewidth]{images/coordenadas_polares.png}
+    \caption{Representación en coordenadas polares de los embeddings latentes estimados para un grafo SBM con dos comunidades.}
+    \label{fig:coordenadas polares}
+\end{figure}
+
+
+\subsection{Detección de comunidades mediante clustering}
+
+Una vez obtenidas las posiciones latentes, aplicamos algoritmos de clustering sobre los vectores $\mathbf{x}_i$ para detectar comunidades. Si bien lo clásico es utilizar k-means, los clusters observados muestran que utilizar Gaussian Mixture Models (GMM) puede ser una mejor opción.
+
+Para la detección de comunidades a partir de los embeddings latentes, empleamos la clase \verb|AutoGMMCluster| de la biblioteca \textit{graspologic}, que permite ajustar automáticamente los hiperparámetros del modelo de mezclas gaussianas (GMM). En la figura~\ref{fig:comunidades} se ilustran los resultados obtenidos para diferentes valores de $Q$ y $n$. Se observa que la tarea de identificar comunidades se vuelve más desafiante cuando la matriz $Q$ presenta valores similares en la diagonal y la antidiagonal, ya que en estos casos la probabilidad de pertenencia a una u otra comunidad es comparable, dificultando la separación clara entre grupos.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.7\linewidth]{images/comunidades.png}
+    \caption{ Resultados de la detección de comunidades mediante clustering de los embeddings latentes en grafos SBM para distintos valores de $Q$ y $n$.}
+    \label{fig:comunidades}
+\end{figure}
+
 
 \section{Ejemplo real}
 

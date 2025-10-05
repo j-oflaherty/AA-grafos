@@ -8,3 +8,8 @@
 *.blg
 *.fdb_latexmk
 *.fls
+.venv/
+.venv-lab3/*
+.venv-lab3/
+
+
