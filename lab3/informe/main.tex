@@ -233,7 +233,9 @@ la intuición que planteamos incialmente: la conexión intracomunidad (valor de 
     \label{fig:sbm_4x4_generation}
 \end{figure}
 
+\FloatBarrier
 \section{Grafos Random Dot Product Graph (RDPG)}
+\label{sec:rdpg}
 
 Los Random Dot Product Graphs (RDPG) representan una generalización tanto de los grafos Erdös-Rényi como de los Stochastic Block Models, introduciendo el concepto de \emph{posiciones latentes}. En este modelo, cada nodo $i = 1, \ldots, n$ se asocia con un vector $\mathbf{x}_i \in \mathbb{R}^d$ en un espacio latente de dimensión $d$, donde la probabilidad de conexión entre dos nodos $i$ y $j$ está determinada por el producto interno de sus respectivas posiciones latentes: $P(A_{ij} = 1) = \langle \mathbf{x}_i, \mathbf{x}_j \rangle$.
 
@@ -259,7 +261,7 @@ Para la implementación utilizamos la biblioteca \textit{graspologic}, específi
 
 \begin{figure}[htb]
     \centering
-    \includegraphics[width=0.7\linewidth]{images/precision.png}
+    \includegraphics[width=0.8\linewidth]{images/precision.png}
     \caption{Varianza de las estimaciones $\mathbf{x}_i$ y $\hat{\mathbf{X}}\hat{\mathbf{X}}^T$ para distintos valores de $n$ y $p$ en grafos ER.}
     \label{fig:precision}
 \end{figure}
@@ -269,7 +271,7 @@ La selección de la dimensión $d$ se realiza mediante el análisis de los valor
 
 \begin{figure}[htb]
     \centering
-    \includegraphics[width=0.7\linewidth]{images/valores_propios.png}
+    \includegraphics[width=0.5\linewidth]{images/valores_propios.png}
     \caption{Valor absoluto de los valores propios de $\mathbf{A}$ ordenados por magnitud.}
     \label{fig:valores propios}
 \end{figure}
@@ -282,11 +284,10 @@ La magnitud $||\mathbf{x}_i||$ está relacionada con la probabilidad de conexió
 
 \begin{figure}[htb]
     \centering
-    \includegraphics[width=0.7\linewidth]{images/coordenadas_polares.png}
+    \includegraphics[width=0.4\linewidth]{images/coordenadas_polares.png}
     \caption{Representación en coordenadas polares de los embeddings latentes estimados para un grafo SBM con dos comunidades.}
     \label{fig:coordenadas polares}
 \end{figure}
-
 
 \subsection{Detección de comunidades mediante clustering}
 
@@ -303,6 +304,147 @@ Para la detección de comunidades a partir de los embeddings latentes, empleamos
 
 
 \section{Ejemplo real}
+
+Aplicaremos lo discutido en la Sección~\ref{sec:rdpg} a un grafo real. Contamos con datos históricos de partidos de fútbol entre equipos nacionales, desde 1872
+hasta 2016. Con estos datos, podemos construirnos un grafo no dirigido, donde los nodos son los equipos (países) y las aristas denotan si jugaron una partido entre ellos.
+Opcionalmente, podemos agregar la cantidad de partidos disputados como el peso de la arista. Trataremos de detectar las comunidades en el grafo y analizar si se corresponde con lo que esperamos ver.
+
+Analizaremos los datos para tres años:
+\begin{itemize}
+    \item 1950: año de mundial pero con pocos datos, por lo que podemos observar las comunidades formadas con detalle.
+    \item 2004: año donde se disputaron: Copa América, Eurocopa, Copa Asíatica, Copa Africana de Naciones, 
+    y la OFC nations cup (oceanía). Es decir, la copa de todas las confederaciones excepto CONCACAF.
+    \item 2010: año de mundial, por lo que deberíamos tener mucha actividad entre algunos países de cada confederación.
+\end{itemize}
+
+\subsection{Año 1950}
+
+En el 1950 se jugo el mundial de Brazil, donde Uruguay se proclamo campeón. El dataset no contiene muchos datos de ese año, contando solo con 141 partidos entre 67 equipos registrados, por lo que
+nos permite graficar los clusters para analizar con más detalle.
+
+\begin{figure}[htb]
+    \centering
+    \begin{subfigure}{0.49\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/mapas/clusters_sin_pesos_1950.pdf}
+        \caption{Embeddings latentes sin pesos.}
+        \label{fig:clusters_1950_sin_pesos}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.49\textwidth}   
+        \centering
+        \includegraphics[width=\linewidth]{images/mapas/clusters_con_pesos_1950.pdf}
+        \caption{Embeddings latentes con pesos.}
+        \label{fig:clusters_1950_con_pesos}
+    \end{subfigure}
+    \caption{Resultado de la extracción de embeddings latentes para el año 1950 proyectado con TSNE. 
+    El color de los nodos indica la comunidad asignada por el algoritmo de clustering.
+    }
+    \label{fig:clusters_1950}
+\end{figure}
+
+En la figura~\ref{fig:clusters_1950} se observan los embedding latentes obtenidos para cada país, para el caso con y sin pesos, así como las comunidades asignadas por el algoritmo de clustering. La principal diferencia que vemos, es que cuando incluímos los pesos desaparece
+una comunidad.
+
+\begin{figure}[htb]
+    \centering
+    \begin{subfigure}{0.49\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/mapas/mapa_sin_pesos_1950.pdf}
+        \caption{Sin pesos.}
+        \label{fig:1950_sin_pesos}
+    \end{subfigure}
+    \begin{subfigure}{0.49\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/mapas/mapa_con_pesos_1950.pdf}
+        \caption{Con pesos.}
+        \label{fig:1950_con_pesos}
+    \end{subfigure}
+    \caption{Mapa de los países con sus comunidades asignadas.}
+    \label{fig:mapa_1950}
+\end{figure}
+
+En la figura~\ref{fig:mapa_1950} observamos el resultado de la figura~\ref{fig:clusters_1950} proyectado en el mapa, lo que nos da una noción geográfica de las comunidades. Recordando que 1950 fue un año de mundial,
+cuando no incluímos pesos vemos que las confederaciones no se distinguen claramente, viendo que 
+américa del sur queda dividida en varias comunidades.
+
+Cuando agregamos los pesos, notamos más coherencia en las comunidades obtenidas. Primero, vemos que
+los países de américa pertenecen todos a la misma comunidad salvo Argentina
+\footnote{Argentina solo disputo un partido en 1950 contra Paraguay}, que en ese año no participo
+del mundial (el resto de equipos américanos si lo hicieron). En europa, vemos tres comunidades, que se 
+corresponden con europa del oeste (reino unido, francia, bélgica,...), europa central (alemania, suzia,
+checoslovaquia, polonia, etc...) y europa del este (yugoslavia, albania, etc...).
+
+\subsection{Año 2004}
+
+En el año 2004 tenemos muchos más datos, con 1089 partidos entre 189 países registrados. Como mencionamos
+anteriormente, en este año sucedieron todas las copas de las confederaciones excepto la de CONCACAF, por lo 
+que las relaciones intra confederación deberían ser muy fuertes cuando inlcuímos pesos.
+
+\begin{figure}[htb]
+    \centering
+    \begin{subfigure}{0.49\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/mapas/mapa_sin_pesos_2004.pdf}
+        \caption{Sin pesos.}
+        \label{fig:2004_sin_pesos}
+    \end{subfigure}
+    \begin{subfigure}{0.49\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/mapas/mapa_con_pesos_2004.pdf}
+        \caption{Con pesos.}
+        \label{fig:2004_con_pesos}
+    \end{subfigure}
+    \caption{Mapa de los países que disputaron partidos en 2004 con sus comunidades asignadas.}
+    \label{fig:mapa_2004}
+\end{figure}
+
+La primer observación es que en la figura~\ref{fig:2004_con_pesos}, el incluir pesos hace que la 
+división de las comunidades sea muy clara y acertada. En el caso de América, vemos la inclusión de
+méxico y los países de américa central en la misma comunidad que los países del sur, pero es consistente
+con la partipación de algunos de ellos en la copa américa como invitados.
+
+Un detalle relevante, es que logra detectar a los países que juegan en una confederación distinta a la 
+de su continente, cómo por ejemplo Armenia o Kazajstán.
+
+Cuando no incluímos los pesos, las grandes comunidades se mantienen (Europa, África, Asia y América del sur),
+pero notamos algunos nodos como Australia, o el caribe y oceanía perteneciendo a la misma comunidad.
+
+\subsection{Año 2010}
+
+En el año 2010 se disputó el mundial de sudáfrica, por lo que deberíamos tener mucha actividad inter
+confedereación, dado que además del mundial se suelen jugar muchos amistosos entre equipos no clasificados.
+Contamos con un total de 865 partidos disputados entre 198 países.
+
+\begin{figure}[htb]
+    \centering
+    \begin{subfigure}{0.49\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/mapas/mapa_sin_pesos_2010.pdf}
+        \caption{Sin pesos.}
+        \label{fig:2010_sin_pesos}
+    \end{subfigure}
+    \begin{subfigure}{0.49\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/mapas/mapa_con_pesos_2010.pdf}
+        \caption{Con pesos.}
+        \label{fig:2010_con_pesos}
+    \end{subfigure}
+    \caption{Mapa de los países con sus comunidades asignadas.}
+    \label{fig:mapa_2010}
+\end{figure}
+
+A diferencia del año 2004, en la figura~\ref{fig:mapa_2010} vemos que en el 2010 el resultado del clustering no es tan claro.Tanto cuando se incluyen pesos como cuando no, Africa, Europa y Asia tiene a sus integrantes
+repartidos entre una o más comunidades. En el caso de africa, notamos que los países ``mal clasificados''
+coinciden o son vecinos de los países que participaron del mundial (ej: Sudáfrica, Ghana, Costa de Marfil)
+
+Por otro lado, cercano a un mundial se celebran los partidos de despedida, que suelen ser amistosos entre
+un país clasificado y uno que no clasifico, generalmente de confederaciones distintas. Esto genera 
+conexiones incluso más aleatorias, lo que deja un grafo bastante ruidoso si el objetivo es la detección
+de comunidades.
+
+
+\section{Conclusiones}
 
 \FloatBarrier
 \bibliography{refs.bib}

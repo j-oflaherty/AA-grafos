@@ -1,2 +1,5 @@
 {
+    "latex-workshop.view.pdf.invertMode.enabled": "always",
+    "latex-workshop.view.pdf.invert": 0.9,
+    "latex-workshop.synctex.afterBuild.enabled": true
 }
