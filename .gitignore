@@ -10,5 +10,7 @@
 .venv/
 .venv-lab3/*
 .venv-lab3/
+graph-learning/
+__pycache__/
 
 
