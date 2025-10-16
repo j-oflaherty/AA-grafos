@@ -43,8 +43,14 @@
 
 
 \section{Introducción}
+Este informe presenta el Laboratorio 4 para la materia Aprendizaje Automático para Datos en Grafos. El objetivo principal es abordar el problema de inferencia de topología en grafos, es decir, la estimación de la estructura subyacente (aristas y pesos) de un grafo a partir de observaciones o medidas en sus nodos. Este problema es fundamental en muchas aplicaciones reales donde se conocen los nodos de una red pero no las conexiones entre ellos, y solo se dispone de señales o características observadas en cada nodo.
+
+Se exploran tres metodologías principales: Graphical Lasso (Friedman, Hastie y Tibshirani, 2008), Meinshausen y Bühlmann (2006) y Kalofolias (2016). En la primera parte, descrita en la sección \ref{sec:datos_sinteticos}, se aplican estos métodos sobre datos sintéticos para evaluar su capacidad de recuperar estructuras conocidas. La segunda parte, sección \ref{sec:mnist}, utiliza el dataset MNIST de dígitos manuscritos, donde cada imagen se interpreta como un nodo del grafo y se evalúa el desempeño mediante clustering espectral. El código implementado puede consultarse en el repositorio de GitHub \url{https://github.com/j-oflaherty/AA-grafos/blob/main/lab4/Lab4_AAG2025.ipynb}.
+
+
 
 \section{Inferencia de topología en datos sintéticos}
+\label{sec:datos_sinteticos}
 
 \subsection{Generación del grafo sintético}
 
@@ -245,7 +251,6 @@ En la figura \ref{fig:kalofolias_grid} se presentan los resultados obtenidos con
     \label{fig:kalofolias_grid}
 \end{figure}
 
- 
 
 \subsection{Comparación y visualización de los grafos aprendidos}
 
@@ -280,32 +285,99 @@ La comparación visual de la figura~\ref{fig:generated_graphs_syntetic} muestra 
 
 
 \section{Inferencia de topología en MNIST}
+\label{sec:mnist}
 Para esta parte trabajaremos el dataset MNIST, que contiene imágenes de dígitos escritos a mano. El objetivo es aprender la estructura del grafo que conecta las imágenes basándonos en sus características visuales, y luego utilizar esta estructura para realizar clustering espectral y evaluar su desempeño.
 
 \subsection{Descripción del dataset y preprocesamiento}
-Para trabajar, nos quedaremos con un subconjunto de 2000 imágenes (doscientas por cada dígito) de dimensión $28 \times 28$ píxeles. Cada imagen la convertimos en un vector de dimensión 784 (aplanando la matriz) y normalizamos los valores de píxeles al rango $[0,1]$.
+Para trabajar, nos quedaremos con un subconjunto de 2000 imágenes (doscientas por cada dígito) de dimensión $28 \times 28$ píxeles. Cada imagen la convertimos en un vector de dimensión 784 (aplanando la matriz) y normalizamos los valores de píxeles al rango $[0,1]$. 
 
-\subsection{Construcción de la matriz de features y t-SNE}
+Para dimensionar la dificultad del problema, se realiza un análisis preliminar utilizando t-SNE para reducir la dimensionalidad de los datos a 2D y visualizar la distribución de las imágenes. En la figura~\ref{fig:tsne_mnist} se observa que los dígitos forman grupos relativamente bien definidos, aunque con cierta superposición, y algunas muestras quedan lejos de su respectivo grupo (\textit{outliers}) lo que indica que el clustering no será trivial.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/mnist/tsne_mnist.pdf}
+    \caption{Visualización t-SNE del subconjunto de 2000 imágenes del dataset MNIST.}
+    \label{fig:tsne_mnist}
+\end{figure}   
+
+Se trabajará con cada imagen como un nodo del grafo, y se buscará aprender las conexiones entre ellas basándose en si son similares en algún sentido.
+
 
 \subsection{Grafo aprendido con Meinshausen y Bühlmann}
 
+Utilizando el método de Meinshausen y Bühlmann implementado previamente, aprendemos la estructura del grafo a partir de las imágenes del dataset MNIST. Se muestra en la figura ~\ref{fig:mnist_meinshausen} el grafo resultante. Cada dígito se representa como un subgrafo circular para facilitar la visualización. Se puede ver que dentro de cada subgrafo los nodos están densamente conectados, reflejando la similitud entre imágenes del mismo dígito. Además, hay conexiones entre diferentes dígitos, lo que indica que algunas imágenes comparten características visuales a pesar de pertenecer a clases distintas. Por ejemplo, se puede ver una fuerte tendencia a conectar los dígitos 4 y 9 o el 3 y el 8. 
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.6\textwidth]{imagenes/mnist/grafo_meinshausen_mnist.png}
+    \caption{Grafo aprendido con el método de Meinshausen y Bühlmann sobre el dataset MNIST.}
+    \label{fig:mnist_meinshausen}
+\end{figure}
+
 \subsection{Grafo aprendido con Kalofolias y umbralización}
+Realizamos el aprendizaje del grafo utilizando el método de Kalofolias. Dado que este método produce una matriz de adyacencia densa, aplicamos una umbralización para eliminar las conexiones más débiles y obtener un grafo más interpretable. En la figura~\ref{fig:mnist_kalofolias} se muestra el grafo resultante tras aplicar Kalofolias y umbralizar los pesos de las aristas. Se puede observar que para cada dígito, los nodos están fuertemente conectados (se distinguen subgrafos más densos en comparación con el método anterior). Sin embargo, la tendencia a conectarse entre dígitos distintos todavía se mantiene fuerte para el caso entre el 4 y 9.  
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.6\textwidth]{imagenes/mnist/grafo_kalofolias_mnist.png}
+    \caption{Grafo aprendido con el método de Kalofolias y umbralización sobre el dataset MNIST.}
+    \label{fig:mnist_kalofolias}
+\end{figure}
 
 \subsection{Clustering espectral sobre grafos aprendidos}
 
-\subsubsection{Métricas de evaluación}
+Una vez obtenidos los grafos mediante los diferentes métodos de aprendizaje, aplicamos clustering espectral para agrupar las imágenes y evaluamos su desempeño utilizando métricas estándar. Los resultados se presentan en la tabla~\ref{tab:clustering_results}, donde se comparan las diferentes estrategias de aprendizaje de grafos junto con el clustering en el espacio original y con representación t-SNE.
 
-\subsubsection{Resultados y comparación}
+\begin{table}[htb]
+\centering
+\begin{tabular}{lccc}
+\hline
+\textbf{Método} & \textbf{V-Measure} & \textbf{Rand} & \textbf{Fowlkes-Mallows} \\
+\hline
+Clustering en espacio original & 0.608977 & 0.414621 & 0.487145 \\
+Meinshausen & 0.591794 & 0.322577 & 0.432388 \\
+Kalofolias & 0.704810 & 0.484090 & 0.562653 \\
+Clustering con t-SNE & 0.627884 & 0.475135 & 0.532973 \\
+\hline
+\end{tabular}
+\caption{Resultados de clustering espectral para diferentes métodos de aprendizaje de grafos evaluados con métricas V-Measure, Rand Index y Fowlkes-Mallows.}
+\label{tab:clustering_results}
+\end{table}
+
+Los resultados muestran que el método de Kalofolias obtiene el mejor desempeño en todas las métricas evaluadas, superando incluso al clustering en el espacio original y con t-SNE. El método de Meinshausen y Bühlmann presenta el desempeño más bajo, lo que sugiere que la estructura de grafo aprendida por este método no captura adecuadamente las relaciones relevantes para el clustering de dígitos. El clustering con t-SNE logra un desempeño intermedio, confirmando que la reducción de dimensionalidad mejora la separabilidad de los grupos pero sin alcanzar los resultados del método de Kalofolias.
 
 \subsection{Visualización en el plano t-SNE por método}
+Para visualizar cómo los diferentes métodos de aprendizaje de grafos afectan la distribución de las imágenes en el espacio reducido, aplicamos t-SNE a las representaciones obtenidas por cada método. En la figura~\ref{fig:tsne_by_method} se presentan las visualizaciones t-SNE correspondientes a cada enfoque.
 
-\subsection{Análisis de aciertos y errores por método}
+\begin{figure}[htb]
+    \centering
+    \begin{minipage}[t]{0.45\textwidth}
+        \vspace{0pt}
+        \centering
+        \includegraphics[width=\textwidth]{imagenes/mnist/mnist_real_labels.png}
+        \caption*{Etiquetas reales}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.53\textwidth}
+        \vspace{0pt}
+        \centering
+        \begin{tabular}{cc}
+            \includegraphics[width=0.48\textwidth]{imagenes/mnist/mnist_clustering_meinshausen.png} &
+            \includegraphics[width=0.48\textwidth]{imagenes/mnist/mnist_clustering_kalofolias.png} \\
+            Meinshausen & Kalofolias \\
+            \includegraphics[width=0.48\textwidth]{imagenes/mnist/mnist_clustering_original.png} &
+            \includegraphics[width=0.48\textwidth]{imagenes/mnist/mnist_clustering_tsne.png} \\
+            Espacio original & t-SNE \\
+        \end{tabular}
+    \end{minipage}
+    \caption{Visualización t-SNE de las imágenes MNIST. Izquierda: etiquetas reales. Derecha: resultados de clustering espectral usando los grafos aprendidos por cada método y en el espacio original.}
+    \label{fig:tsne_by_method}
+\end{figure}
+
+Analizando las diferencias entre el método de Kalofolias y el clustering con t-SNE, lo primero que salta a la vista es que Kalofolias logra correctamente muestras que se encuentran más aisladas de su cluster principal, mientras que t-SNE asigna clusters más compactos perdiendo las muestras atípicas. Esto sugiere que Kalofolias es más robusto a la presencia de \textit{outliers} y puede capturar mejor la variabilidad dentro de cada clase. 
 
 
-\section{Conclusiones}
 
-
-\section{Referencias}
+% \section{Referencias}
 \bibliographystyle{plain}
 \bibliography{refs}
 
