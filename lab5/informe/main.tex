@@ -1,0 +1,102 @@
+\documentclass{article}
+
+\usepackage[a4paper]{geometry}
+\usepackage[spanish]{babel}
+\usepackage{xcolor}
+\usepackage{placeins}
+
+\usepackage{mathbbol}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{subcaption}
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+% Cambiar 'Cuadro' -> 'Tabla'
+\addto\captionsspanish{
+    \renewcommand{\tablename}{Tabla}
+}
+
+\begin{document}
+
+\begin{center}
+    {\Large Aprendizaje Automático para Datos en Grafos} \\
+    {\LARGE \textbf{Laboratorio 5}} \\
+    \vspace{2em}
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        Graciana Castro \\
+        4.808.848-2 \\
+        gcastro@fing.edu.uy
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        Julian O'Flaherty \\
+        6.285.986-9 \\
+        julian.o.flaherty@fing.edu.uy
+    \end{minipage}
+\end{center}
+
+
+\section{Introducción}
+
+\section{Graph Convolution}
+Se define la convolución en el grafo como $$\mathbf{Y} = \sum_{k=0}^{K} \mathbf{S}^k \mathbf{X} \mathbf{H}_k,$$ donde $\mathbf{Y} \in \mathbb{R}^{N \times F_{\text{out}}}$, $\mathbf{S} \in \mathbb{R}^{N \times N}$ es la matriz de soporte, $\mathbf{X} \in \mathbb{R}^{N \times F_{\text{in}}}$ es la matriz de características de entrada, y $\mathbf{H}_k \in \mathbb{R}^{F_{\text{in}} \times F_{\text{out}}}$ es la matriz de coeficientes del filtro. $\mathbf{S}_{i,j}^k$ será distinta de cero si hay un camino de largo $k$ entre los nodos $i$ y $j$. Por lo tanto, la convolución en el grafo considera la información de los nodos que están a una distancia máxima de $K$ saltos.
+
+En particular, trabajamos con el caso donde la matriz de soporte es la matriz de adyacencia $\mathbf{A}$ del grafo. En este caso, la convolución en el grafo se puede interpretar como una combinación lineal de las características de los nodos vecinos hasta una distancia máxima de $K$ saltos. La convolución queda entonces: 
+
+$$\mathbf{Y} = \sum_{k=0}^{K} \mathbf{A}^k \mathbf{X} \mathbf{H}_k.$$
+
+Si tomamos $\mathbf{Z}_k = \mathbf{A}^k \mathbf{X}$, podemos definir cada $\mathbf{Z}_k$ a partir de $\mathbf{Z}_{k-1}$ como:
+$$\mathbf{Z}_k = \mathbf{A} \mathbf{Z}_{k-1},$$
+con $\mathbf{Z}_0 = \mathbf{X}$. De esta forma, podemos implementar la convolución en el grafo de manera eficiente. 
+
+\subsection{Implementaciones}
+Se probaron dos implementaciones de la convolución en el grafo. Por un lado, realizamos una implementación manual de la clase que denominamos \texttt{GCNLayer}. Esta clase recibe como parámetros la dimensión de entrada $F_{\text{in}}$, la dimensión de salida $F_{\text{out}}$ y el tamaño del filtro $K$. En el método \texttt{forward}, se calcula la convolución en el grafo recorriendo los filtros y propagando la información a través del grafo utilizando el método \texttt{propagate} de PyTorch Geometric.
+
+También se probó la implementación de la clase \texttt{TAGConv} de PyTorch Geometric, que realiza la misma operación de convolución en el grafo. Esta clase también recibe como parámetros la dimensión de entrada $F_{\text{in}}$, la dimensión de salida $F_{\text{out}}$ y el tamaño del filtro $K$. 
+
+Para verificar que ambas implementaciones son correctas, se compararon los resultados obtenidos con ambas clases tomando una señal de entrada aleatoria y una matriz de adyacencia de un grafo pequeño, y se compararon con el resultado de la operación de convolución en el grafo calculada manualmente como $\mathbf{Y} = \sum_{k=0}^{K} \mathbf{A}^k \mathbf{X}$. 
+
+Se tiene que $$\mathbf{A} = \begin{bmatrix}
+    0 & 1 & 0 & 0\\
+    1 & 0 & 1 & 1\\
+    0 & 1 & 0 & 1\\
+    0 & 1 & 1 & 0
+\end{bmatrix} , \ \ \ \ \mathbf{X} = \begin{bmatrix}
+    0 & 1 \\
+    2 & 3 \\
+    4 & 5 \\
+    6 & 7
+\end{bmatrix}$$
+
+por lo que el resultado de la operación manual es
+
+$$\mathbf{Y}_{\text{ref}} = \begin{bmatrix}
+    28 & 38 \\
+    72 & 94 \\
+    62 & 80 \\
+    62 & 80
+\end{bmatrix}.$$
+
+En la figura \ref{fig:resultados_gcn_tag} se muestran los resultados obtenidos con ambas implementaciones, que coinciden con el resultado de la operación manual.
+
+\begin{figure}[htb!]
+    \centering
+    \includegraphics[width=0.5\textwidth]{imagenes/Resultados_GCN_TAG.png}
+    \caption{Resultados obtenidos con ambas implementaciones de la convolución en el grafo.}
+    \label{fig:resultados_gcn_tag}
+\end{figure}
+
+\section{Graph Perceptron}
+
+
+\FloatBarrier
+\bibliography{refs.bib}
+\bibliographystyle{plain}
+
+\end{document}
