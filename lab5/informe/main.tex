@@ -93,7 +93,56 @@ En la figura \ref{fig:resultados_gcn_tag} se muestran los resultados obtenidos c
 \end{figure}
 
 \section{Graph Perceptron}
+Si luego de realizar la convolución se pasa la salida por una función de activación no lineal, se obtiene una capa de perceptrón en el grafo. Concatenando varias capas se puede construir una red neuronal profunda en el grafo. En este caso, se trabajó con una red de tres capas implementada utilizando la clase \texttt{TAGConv} seguida de una \texttt{ReLU}. Al final, se agregó una capa lineal para realizar una reducción de dimensiones. La arquitectura de la red es la siguiente:
 
+\begin{itemize}
+    \item Capa 1: \texttt{TAGConv} con $F_{\text{in}} = 64$, $F_{\text{out}} = 64$, $K=3$, seguida de una \texttt{ReLU}.
+    \item Capa 2: \texttt{TAGConv} con $F_{\text{in}} = 64$, $F_{\text{out}} = 64$, $K=3$, seguida de una \texttt{ReLU}.
+    \item Capa 3: \texttt{TAGConv} con $F_{\text{in}} = 64$, $F_{\text{out}} = 64$, $K=3$, seguida de una \texttt{ReLU}.
+    \item Capa final: Capa lineal con $F_{\text{in}} = 64$, $F_{\text{out}} = 16$.
+\end{itemize}
+
+Los parámetros entrenables de esta red corresponden a los parámetros de los filtros de las capas \texttt{TAGConv} y a los pesos y bias de la capa lineal final. En la figura \ref{fig:parametros} se muestra como crece el número de parámetros entrenables a medida que crece la dimensión de las características de entrada. 
+
+\begin{figure}[htb!]
+    \centering
+    \includegraphics[width=0.7\textwidth]{imagenes/parametros.png}
+    \caption{Número de parámetros entrenables en la red neuronal profunda en el grafo en función de la dimensión de las características de entrada.}
+    \label{fig:parametros}
+\end{figure}
+
+Sin embargo, si cambiáramos el número de nodos en el grafo, el número de parámetros entrenables no se vería afectado, ya que estos dependen únicamente de las dimensiones de las características de entrada y salida y del tamaño del filtro $K$.
+
+\section{GNN sobre \textit{Open Graph Benchmark - ogbn-arxiv}}
+El dataset \textit{ogbn-arxiv} consiste en un grafo de citas entre artículos de arXiv donde cada nodo representa un artículo y cada arista representa una cita entre dos artículos. Cada paper tiene un vector de características de dimensión $d=128$ que representa el promedio de los \textit{embeddings} de texto del título y contenido. Se busca entrenar una GNN para predecir la categoría del artículo (uno entre 40 posibles) a partir de las características de los nodos y la estructura del grafo. Dividimos el dataset en conjuntos de entrenamiento, validación y test, tomando los artículos hasta 2017 para entrenamienot, los de 2018 para validación y los de 2019 para test.
+
+Para este problema, se implementó una GNN siguiendo la estructura mostrada en la figura \ref{fig:GNN}. Se realizó un primer entrenamiento durante cien épocas definiendo la red con dos capas, dimensión oculta de 128 y tamaño del filtro $K=1$. El resultado obtenido fue de 69.17\% en el conjunto de test. 
+
+\begin{figure}[htb!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/GNN.png}
+    \caption{Arquitectura de la GNN utilizada para el problema de clasificación de nodos en el dataset \textit{ogbn-arxiv}.}
+    \label{fig:GNN}
+\end{figure}
+
+Para mejorar el desempeño del modelo, se realizó un ajuste de hiperparámetros considerando las siguientes opciones:
+\begin{itemize}
+    \item Número de capas: 3, 4.
+    \item Dimensión de las características intermedias: 128, 256.
+    \item Número de épocas: 150, 300.
+    \item Tamaño del filtro $K$: 2, 3.
+\end{itemize}
+
+Se muestran en la figura \ref{fig:resultados_arxiv} los resultados obtenidos en el conjunto de validación para las distintas combinaciones de hiperparámetros. Para una representación más clara, se muestran cuatro matrices de confusión donde para cada una se fija el número de épocas y el tamaño del filtro y se varían la dimensión de las características intermedias y el número de capas.
+
+\begin{figure}[htb!]
+    \centering
+    \includegraphics[width=\textwidth]{imagenes/resultados_arxiv.png}
+    \caption{Resultados obtenidos en el conjunto de test para distintas combinaciones de hiperparámetros.}
+    \label{fig:resultados_arxiv}
+\end{figure}
+
+Se puede observar que los mejores resultados se obtienen entrenando durante 300 épocas con 3 capas, dimensión intermedia de 256 y tamaño del filtro $K=2$. Con esta combinación, el accuracy obtenido en el conjunto de test fue de 71.87\%.
 
 \FloatBarrier
 \bibliography{refs.bib}
