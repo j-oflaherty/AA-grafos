@@ -1,0 +1,212 @@
+\documentclass{article}
+
+\usepackage[a4paper]{geometry}
+\usepackage[spanish]{babel}
+\usepackage{xcolor}
+\usepackage{placeins}
+
+\usepackage{mathbbol}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{subcaption}
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+% Cambiar 'Cuadro' -> 'Tabla'
+\addto\captionsspanish{
+    \renewcommand{\tablename}{Tabla}
+}
+
+\begin{document}
+
+\begin{center}
+    {\Large Aprendizaje Automático para Datos en Grafos} \\
+    {\LARGE \textbf{Laboratorio 5}} \\
+    \vspace{2em}
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        Graciana Castro \\
+        4.808.848-2 \\
+        gcastro@fing.edu.uy
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        Julian O'Flaherty \\
+        6.285.986-9 \\
+        julian.o.flaherty@fing.edu.uy
+    \end{minipage}
+\end{center}
+
+
+\section{Introducción}
+Este informe presenta el Laboratorio 5 para la materia Aprendizaje Automático para Datos en Grafos. En este laboratorio, se implementaron y probaron distintas arquitecturas de redes neuronales en grafos (GNNs) utilizando la librería PyTorch Geometric. En particular, se implementaron capas de convolución en grafos y capas de perceptrón en grafos. Además, se entrenaron modelos GCN y GAT para el problema de clasificación de nodos en el dataset \textit{Open Graph Benchmark - ogbn-arxiv}. 
+
+El código implementado puede consultarse en el repositorio de GitHub \url{https://github.com/j-oflaherty/AA-grafos/blob/main/lab5/Castro_OFlaherty_Lab5_AAG2025.ipynb}.
+
+
+\section{Graph Convolution}
+Se define la convolución en el grafo como $$\mathbf{Y} = \sum_{k=0}^{K} \mathbf{S}^k \mathbf{X} \mathbf{H}_k,$$ donde $\mathbf{Y} \in \mathbb{R}^{N \times F_{\text{out}}}$, $\mathbf{S} \in \mathbb{R}^{N \times N}$ es la matriz de soporte, $\mathbf{X} \in \mathbb{R}^{N \times F_{\text{in}}}$ es la matriz de características de entrada, y $\mathbf{H}_k \in \mathbb{R}^{F_{\text{in}} \times F_{\text{out}}}$ es la matriz de coeficientes del filtro. $\mathbf{S}_{i,j}^k$ será distinta de cero si hay un camino de largo $k$ entre los nodos $i$ y $j$. Por lo tanto, la convolución en el grafo considera la información de los nodos que están a una distancia máxima de $K$ saltos.
+
+En particular, trabajamos con el caso donde la matriz de soporte es la matriz de adyacencia $\mathbf{A}$ del grafo. En este caso, la convolución en el grafo se puede interpretar como una combinación lineal de las características de los nodos vecinos hasta una distancia máxima de $K$ saltos. La convolución queda entonces: 
+
+$$\mathbf{Y} = \sum_{k=0}^{K} \mathbf{A}^k \mathbf{X} \mathbf{H}_k.$$
+
+Si tomamos $\mathbf{Z}_k = \mathbf{A}^k \mathbf{X}$, podemos definir cada $\mathbf{Z}_k$ a partir de $\mathbf{Z}_{k-1}$ como:
+$$\mathbf{Z}_k = \mathbf{A} \mathbf{Z}_{k-1},$$
+con $\mathbf{Z}_0 = \mathbf{X}$. De esta forma, podemos implementar la convolución en el grafo de manera eficiente. 
+
+\subsection{Implementaciones}
+Se probaron dos implementaciones de la convolución en el grafo. Por un lado, realizamos una implementación manual de la clase que denominamos \texttt{GCNLayer}. Esta clase recibe como parámetros la dimensión de entrada $F_{\text{in}}$, la dimensión de salida $F_{\text{out}}$ y el tamaño del filtro $K$. En el método \texttt{forward}, se calcula la convolución en el grafo recorriendo los filtros y propagando la información a través del grafo utilizando el método \texttt{propagate} de PyTorch Geometric.
+
+También se probó la implementación de la clase \texttt{TAGConv} de PyTorch Geometric, que realiza la misma operación de convolución en el grafo. Esta clase también recibe como parámetros la dimensión de entrada $F_{\text{in}}$, la dimensión de salida $F_{\text{out}}$ y el tamaño del filtro $K$. 
+
+Para verificar que ambas implementaciones son correctas, se compararon los resultados obtenidos con ambas clases tomando una señal de entrada aleatoria y una matriz de adyacencia de un grafo pequeño, y se compararon con el resultado de la operación de convolución en el grafo calculada manualmente como $\mathbf{Y} = \sum_{k=0}^{K} \mathbf{A}^k \mathbf{X}$. 
+
+Se tiene que $$\mathbf{A} = \begin{bmatrix}
+    0 & 1 & 0 & 0\\
+    1 & 0 & 1 & 1\\
+    0 & 1 & 0 & 1\\
+    0 & 1 & 1 & 0
+\end{bmatrix} , \ \ \ \ \mathbf{X} = \begin{bmatrix}
+    0 & 1 \\
+    2 & 3 \\
+    4 & 5 \\
+    6 & 7
+\end{bmatrix}$$
+
+Por lo que el resultado de la operación manual es
+
+$$\mathbf{Y}_{\text{ref}} = \begin{bmatrix}
+    28 & 38 \\
+    72 & 94 \\
+    62 & 80 \\
+    62 & 80
+\end{bmatrix}.$$
+
+En la figura \ref{fig:resultados_gcn_tag} se muestran los resultados obtenidos con ambas implementaciones, que coinciden con el resultado de la operación manual.
+
+\begin{figure}[htb!]
+    \centering
+    \includegraphics[width=0.5\textwidth]{imagenes/Resultados_GCN_TAG.png}
+    \caption{Resultados obtenidos con ambas implementaciones de la convolución en el grafo.}
+    \label{fig:resultados_gcn_tag}
+\end{figure}
+
+\section{Graph Perceptron}
+Si luego de realizar la convolución se pasa la salida por una función de activación no lineal, se obtiene una capa de perceptrón en el grafo. Concatenando varias capas se puede construir una red neuronal profunda en el grafo. En este caso, se trabajó con una red de tres capas implementada utilizando la clase \texttt{TAGConv} seguida de una \texttt{ReLU}. Al final, se agregó una capa lineal para realizar una reducción de dimensiones. La arquitectura de la red es la siguiente:
+
+\begin{itemize}
+    \item Capa 1: \texttt{TAGConv} con $F_{\text{in}} = 64$, $F_{\text{out}} = 64$, $K=3$, seguida de una \texttt{ReLU}.
+    \item Capa 2: \texttt{TAGConv} con $F_{\text{in}} = 64$, $F_{\text{out}} = 64$, $K=3$, seguida de una \texttt{ReLU}.
+    \item Capa 3: \texttt{TAGConv} con $F_{\text{in}} = 64$, $F_{\text{out}} = 64$, $K=3$, seguida de una \texttt{ReLU}.
+    \item Capa final: Capa lineal con $F_{\text{in}} = 64$, $F_{\text{out}} = 16$.
+\end{itemize}
+
+Los parámetros entrenables de esta red corresponden a los parámetros de los filtros de las capas \texttt{TAGConv} y a los pesos y bias de la capa lineal final. En la figura \ref{fig:parametros} se muestra como crece el número de parámetros entrenables a medida que crece la dimensión de las características de entrada. 
+
+\begin{figure}[htb!]
+    \centering
+    \includegraphics[width=0.7\textwidth]{imagenes/parametros.png}
+    \caption{Número de parámetros entrenables en la red neuronal profunda en el grafo en función de la dimensión de las características de entrada.}
+    \label{fig:parametros}
+\end{figure}
+
+Sin embargo, si cambiáramos el número de nodos en el grafo, el número de parámetros entrenables no se vería afectado, ya que estos dependen únicamente de las dimensiones de las características de entrada y salida y del tamaño del filtro $K$.
+
+\section{GCN sobre \textit{Open Graph Benchmark - ogbn-arxiv}}
+El dataset \textit{ogbn-arxiv} consiste en un grafo de citas entre artículos de arXiv donde cada nodo representa un artículo y cada arista representa una cita entre dos artículos. Cada paper tiene un vector de características de dimensión $d=128$ que representa el promedio de los \textit{embeddings} de texto del título y contenido. Se busca entrenar una GNN para predecir la categoría del artículo (uno entre 40 posibles) a partir de las características de los nodos y la estructura del grafo. Dividimos el dataset en conjuntos de entrenamiento, validación y test, tomando los artículos hasta 2017 para entrenamiento, los de 2018 para validación y los de 2019 para test.
+
+Para este problema, se implementó una GNN siguiendo la estructura mostrada en la figura \ref{fig:GNN}. Se realizó un primer entrenamiento durante cien épocas definiendo la red con dos capas, dimensión oculta de 128 y tamaño del filtro $K=1$. El resultado obtenido fue de 69.17\% en el conjunto de test. 
+
+\begin{figure}[htb!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/GNN.png}
+    \caption{Arquitectura de la GNN utilizada para el problema de clasificación de nodos en el dataset \textit{ogbn-arxiv}.}
+    \label{fig:GNN}
+\end{figure}
+
+Para mejorar el desempeño del modelo, se realizó un ajuste de hiperparámetros considerando las siguientes opciones:
+\begin{itemize}
+    \item Número de épocas: 150, 300.
+    \item Tamaño del filtro $K$: 3, 5.
+    \item Número de capas: 3, 5.
+    \item Dimensión de las características intermedias: 64, 128.    
+\end{itemize}
+
+Se muestran en la figura \ref{fig:resultados_arxiv} los resultados obtenidos en el conjunto de validación para las distintas combinaciones de hiperparámetros. Para una representación más clara, se muestran cuatro matrices de confusión donde para cada una se fija el número de épocas y el tamaño del filtro y se varían la dimensión de las características intermedias y el número de capas.
+
+\begin{figure}[htb!]
+    \centering
+    \includegraphics[width=\textwidth]{imagenes/resultados_arxiv.png}
+    \caption{Resultados obtenidos en el conjunto de validación para distintas combinaciones de hiperparámetros entrenando el modelo GCN.}
+    \label{fig:resultados_arxiv}
+\end{figure}
+
+Se puede observar que los mejores resultados se obtienen entrenando durante 300 épocas con tamaño del filtro $K=3$, dimensión intermedia de 128 y tres capas. Con esta combinación, el accuracy obtenido en el conjunto de test fue de 72.72\%.
+
+\section{Graph Attention}
+
+Desde la introducción de la arquitectura del Transformer, los modelos basados en \emph{atención} se han
+convertido en el estándar en muchas tareas, desde procesamiento de lenguaje natural hasta visión por 
+computadora. Para el caso deep learning en grafos se define el \emph{Graph Attention Network} (GAT)~\cite{velickovic_graph_2018} como una extensión de la red convolucional antes definida.
+
+\begin{equation}
+    \mathbf{y} = \sum_{k=0}^{K} \mathbf{S}^k \mathbf{x} h_k \Rightarrow  \mathbf{y} = \sum_{k=0}^{K} \alpha_{ij} \mathbf{x} h_k
+\end{equation}
+Donde $\alpha_{ij}$ es el coeficiente de atención entre los nodos $i$ y $j$. Este se define como:
+\begin{equation}
+    \alpha_{ij} = \text{softmax} (e(\mathbf{x}_i, \mathbf{x}_j)) = \frac{\exp(e(\mathbf{x}_i, \mathbf{x}_j))}{\sum_{j'\in N_i}\exp(e(\mathbf{x}_i, \mathbf{x}_{j'})}
+\end{equation}
+donde $e$ es la función de scoring definida como
+\begin{equation}
+    e(\mathbf{x}_i, \mathbf{x}_j) = \text{LeakyReLU}(a^T[\mathbf{H}\mathbf{x}_i||\mathbf{H}\mathbf{x}_j]) 
+\end{equation}
+La ventaja introducida por esta arquitectura está en la posibilidad de dar importancia a los vecinos de 
+forma diferenciada y dinámica, es decir, en función de la entrada. Cada vecino tiene un peso diferente 
+calculado en función de la entrada, con el cual se pondera el valor del vecino al hacer el message passing.
+
+\begin{figure}[htb!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/resultados_gat.png}
+    \caption{Resultados obtenidos en el conjunto de validación para distintas combinaciones de hiperparámetros entrenando el modelo GAT.}
+    \label{fig:resultados_arxiv_gat}
+\end{figure}
+
+Al replicar el modelo de la sección anterior cambiando las capas GCN por capas GAT, obtenemos los resultados
+de la figura~\ref{fig:resultados_arxiv_gat}. Por capacidad de memoria no pudimos probar distintos tamaños del filtro, fijando el mismo en $K=1$. Además, debimos reducir el número de capas de la red y las dimensiones ocultas, aunque logramos considerar la combinación que dio mejores resultados con el modelo GCN. Comparando con la figura~\ref{fig:resultados_arxiv}, vemos que no mejora el desempeño del modelo. Sin embargo, se puede notar que la mejor performance se obtiene con el modelo GAT más grande que se puede conseguir con estas combinaciones de hiperparámetros, por lo que de tener capacidad de cómputo para generar un modelo más grande se puede suponer que el desempeño mejoraría.
+El mejor resultado en este caso se obtuvo entrenando durante 300 épocas, con cuatro capas y 128 dimensiones intermedias, alcanzando un accuracy de 69.5\% en el conjunto de test.
+
+\subsection{Graph Attention v2}
+
+La implementación inicial de Graph Attention~\cite{velickovic_graph_2018} está limitada en el sentido que
+es una atención estática. Es decir, dado un nodo (\textit{query}), el orden solo depende de los valores de los vecinos (\textit{keys}).
+
+La solución a este problema se encuentra en el paper~\cite{brody2022attentivegraphattentionnetworks}, donde se propone el \emph{Graph Attention Network v2} (GATv2). Este modelo es una extensión de la arquitectura GAT que permite una atención dinámica. El cambio se da en la función de scoring, que pasa a ser:
+
+\begin{equation}
+    e(\mathbf{x}_i, \mathbf{x}_j) = a^T\text{LeakyReLU}(\mathbf{W}[\mathbf{x}_i||\mathbf{x}_j]) = a^T\text{LeakyReLU}(\mathbf{W}_1\mathbf{x}_i + \mathbf{W}_2\mathbf{x}_j)  
+\end{equation}
+
+Es decir, en vez de ser un único filtro lineal, se divide en un filtro para cada nodo (query) y uno para los vecinos (key). A su vez, se aplica la capa de atención luego de la no linealidad, lo que evita que toda la operación se pueda simplificar a una transformación lineal.
+
+Al replicar el modelo de la sección anterior cambiando las capas GAT por capas GATv2, obtenemos los resultados
+de la figura~\ref{fig:resultados_arxiv_gatv2}. La búsqueda de hiperparámetros se realizó tomando los mismos valores que para el modelo GAT. Al igual que en el caso del GAT, no se realizo una búsqueda de hiperparámetros exhaustiva, y se tuvo que reducir el tamaño de las capas ocultas para evitar problemas de memoria.
+
+\begin{figure}[htb!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/resultados_gatv2.png}
+    \caption{Resultados obtenidos en el conjunto de validación para distintas combinaciones de hiperparámetros entrenando el modelo GATv2.}
+    \label{fig:resultados_arxiv_gatv2}
+\end{figure}
+
+Nuevamente, el mejor resultado se obtuvo entrenando durante 300 épocas, con cuatro capas y 64 dimensiones intermedias. Comparando con la figura ~\ref{fig:resultados_arxiv_gat}, vemos que el desempeño del modelo mejora. El accuracy obtenido en el conjunto de test fue de 70.94\%.
+
+\FloatBarrier
+\bibliography{refs.bib}
+\bibliographystyle{plain}
+
+\end{document}
