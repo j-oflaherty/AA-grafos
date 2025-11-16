@@ -45,7 +45,7 @@
 \section{Introducción}
 Este informe presenta el Laboratorio 5 para la materia Aprendizaje Automático para Datos en Grafos. En este laboratorio, se implementaron y probaron distintas arquitecturas de redes neuronales en grafos (GNNs) utilizando la librería PyTorch Geometric. En particular, se implementaron capas de convolución en grafos y capas de perceptrón en grafos. Además, se entrenaron modelos GCN y GAT para el problema de clasificación de nodos en el dataset \textit{Open Graph Benchmark - ogbn-arxiv}. 
 
-El código implementado puede consultarse en el repositorio de GitHub \url{https://github.com/j-oflaherty/AA-grafos/blob/main/lab4/Castro_OFlaherty_Lab5_AAG2025.ipynb}.
+El código implementado puede consultarse en el repositorio de GitHub \url{https://github.com/j-oflaherty/AA-grafos/blob/main/lab5/Castro_OFlaherty_Lab5_AAG2025.ipynb}.
 
 
 \section{Graph Convolution}
@@ -194,7 +194,7 @@ La solución a este problema se encuentra en el paper~\cite{brody2022attentivegr
 Es decir, en vez de ser un único filtro lineal, se divide en un filtro para cada nodo (query) y uno para los vecinos (key). A su vez, se aplica la capa de atención luego de la no linealidad, lo que evita que toda la operación se pueda simplificar a una transformación lineal.
 
 Al replicar el modelo de la sección anterior cambiando las capas GAT por capas GATv2, obtenemos los resultados
-de la figura~\ref{fig:resultados_arxiv_gatv2}. La búsqueda de hiperparámetros se realizó tomando los mismos valores que para el modelo GAT.
+de la figura~\ref{fig:resultados_arxiv_gatv2}. La búsqueda de hiperparámetros se realizó tomando los mismos valores que para el modelo GAT. Al igual que en el caso del GAT, no se realizo una búsqueda de hiperparámetros exhaustiva, y se tuvo que reducir el tamaño de las capas ocultas para evitar problemas de memoria.
 
 \begin{figure}[htb!]
     \centering
