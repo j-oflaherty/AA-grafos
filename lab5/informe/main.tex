@@ -43,6 +43,10 @@
 
 
 \section{Introducción}
+Este informe presenta el Laboratorio 5 para la materia Aprendizaje Automático para Datos en Grafos. En este laboratorio, se implementaron y probaron distintas arquitecturas de redes neuronales en grafos (GNNs) utilizando la librería PyTorch Geometric. En particular, se implementaron capas de convolución en grafos y capas de perceptrón en grafos. Además, se entrenaron modelos GCN y GAT para el problema de clasificación de nodos en el dataset \textit{Open Graph Benchmark - ogbn-arxiv}. 
+
+El código implementado puede consultarse en el repositorio de GitHub \url{https://github.com/j-oflaherty/AA-grafos/blob/main/lab4/Castro_OFlaherty_Lab5_AAG2025.ipynb}.
+
 
 \section{Graph Convolution}
 Se define la convolución en el grafo como $$\mathbf{Y} = \sum_{k=0}^{K} \mathbf{S}^k \mathbf{X} \mathbf{H}_k,$$ donde $\mathbf{Y} \in \mathbb{R}^{N \times F_{\text{out}}}$, $\mathbf{S} \in \mathbb{R}^{N \times N}$ es la matriz de soporte, $\mathbf{X} \in \mathbb{R}^{N \times F_{\text{in}}}$ es la matriz de características de entrada, y $\mathbf{H}_k \in \mathbb{R}^{F_{\text{in}} \times F_{\text{out}}}$ es la matriz de coeficientes del filtro. $\mathbf{S}_{i,j}^k$ será distinta de cero si hay un camino de largo $k$ entre los nodos $i$ y $j$. Por lo tanto, la convolución en el grafo considera la información de los nodos que están a una distancia máxima de $K$ saltos.
