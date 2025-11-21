@@ -1,0 +1,90 @@
+\documentclass{article}
+
+\usepackage[a4paper]{geometry}
+\usepackage[spanish]{babel}
+
+\usepackage{hyperref}
+\usepackage{graphicx}
+
+
+
+\begin{document}
+
+\begin{center}
+    {\Large Aprendizaje Automático para Datos en Grafos} \\
+    {\large \textbf{Propuesta de Proyecto Final}} \\
+    {\LARGE \textbf{Redes Neuronales en Grafos para visión por computadora}} \\
+    \vspace{2em}
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        Graciana Castro \\
+        4.808.848-2 \\
+        gcastro@fing.edu.uy
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        Julian O'Flaherty \\
+        6.285.986-9 \\
+        julian.o.flaherty@fing.edu.uy
+    \end{minipage}
+\end{center}
+
+\section{Introducción}
+
+Las imágenes son un tipo de datos con estructura espacial, la cual podemos representar con un grafo. Por ejemplo, existen métodos clásicos de segmentación
+de imágenes que se basan construir un grafo y aplicarle algoritmos para obtener el corte mínimo del mismo~\cite{wiki:graphcuts}. 
+Dados los avances en el aprendizaje profundo y los desarrollos en las redes neuronales en grafos, es natural postular la utilidad de estas para tareas
+de visión por computadora. En este trabajo se realizará un pequeño relevamiento del estado del arte del uso de GNNs para tareas de visión por computadora,
+enfocandose en tareas de clasificación y segmentación de imagenes.
+
+El objetivo de este proyecto será responder la pregunta \textbf{¿Tienen lugar las GNNs en la tearea de Visión por computadora? }
+
+\section{Propuesta de trabajo}
+
+\subsection{Relevamiento del estado del arte}
+
+La primera etapa del proyecto consistirá en un relevamiento del estado del arte, analizando trabajos que hayan explorado esta idea. Por lo que 
+hallamos preliminarmente, el desafío se divide en dos etápas:
+\begin{itemize}
+    \item Diseño y construcción del grafo
+    \item Arquitectura y entrenamiento de la GNN
+\end{itemize}
+En el relevamiento se apuntara a cubrir varias estratégias de construcción del grafo y arquitecturas, buscando analizar que combinación obtiene los mejores
+resultados.
+
+Entre los trabajos que encontramos, destacan los siguientes:
+\begin{itemize}
+    \item \textbf{VisionGNN~\cite{han2022visiongnnimageworth}}: este paper propone una estrategia de creación de grafo tomando patches de a la imagen como 
+    nodos y conectandolos en base a su contenido.
+    \item \textbf{Superpixel Image Classification with Graph Attention Networks~\cite{avelar2020superpixelimageclassificationgraph}}: este paper propone una estrategia de creación de grafo tomando superpixels de la imagen como nodos y defininiendo una estrategia de conexión basada en el contenido de los mismos.
+\end{itemize}
+
+\subsection{Implementación y datasets}
+
+Una vez seleccionados los modelos y estratégias a usar, se recopilaran las implementaciones en un repositorio que permita la rápida evaluación de los 
+métodos. Se desarrollara en Python, utilizando la librería torch-geometric para los modelos de aprendizaje profundo. El repositorio se implementará
+tal que los bloques de creación de grafos y los modelos sean intercambiables y combinables, permitiendo la rápida iteración y comparación.
+
+Para trabajar con un nivel de computo manejable, se trabajara sobre los siguientes datasets:
+\begin{itemize}
+    \item MNIST~\cite{Deng2012TheMD}: dataset de dígitos escritos a mano. Actuara como dataset de debugging, contando con imágenes pequeñas y simples de clasificar,
+    permitiendo la rápida iteración y validación de modelos.
+    \item STL-10~\cite{pmlr-v15-coates11a}: dataset de imágenes de objetos de 10 clases (500 imagenes de entrenamiento por clase).
+    \item ImageNet-100~\cite{ILSVRC15}: subset de ImageNet con 100 clases (en vez de las 10k).
+    \item Pascal VOC0712~\cite{everingham2010pascal}: dataset de clasificación, detection y segmentación de objetos. Cuenta con 20 clases.
+\end{itemize}
+
+\section{Entregables}
+
+El entregable del proyecto será un informe con los resultados obtenidos, haciendo una comparativa de los resultados obtenidos con cada estrategia. Se sumará
+a la comparación, resultados obtenidos para CNNs del mismo tamaño\footnote{Se excluyen los VITs, dado que su arquitectura destaca en grandes volúmenes de datos}.
+También se hara una comparativa con la construcción del grafo básica, conectando simplemente patches vecinos, buscando medir el impacto de la construcción
+del grafo en el modelo final. Se hara también un analisis computacional, tratando de medir la escalabilidad de estos métodos.
+
+También se entregará el código de investigación utilizado, donde se implementen los modelos y estrategias de construcción de grafo.
+
+\bibliographystyle{plain}
+\bibliography{refs}
+
+\end{document}
